@@ -32,7 +32,7 @@ export default function InviteLanding({ params }: { params: { token: string } })
         if (!user) { setMessage('Devi autenticarti prima di accettare'); return; }
         try {
             const inv = await getInviteByToken(token);
-            if(!inv) { setStatus('error'); setMessage('Invito non trovato'); return; }
+            if (!inv) { setStatus('error'); setMessage('Invito non trovato'); return; }
             await acceptInviteByToken(token, user.uid, user.email || '');
             // Refresh workspace list and activate the joined workspace
             await refreshWorkspaces(inv.workspaceId);

@@ -52,7 +52,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           setWorkspaces(finalList);
           setActiveWorkspaceId(finalList[0].id);
         }
-      } finally { if(!cancelled) setLoading(false); }
+      } finally { if (!cancelled) setLoading(false); }
     }
     init();
     return () => { cancelled = true; };
@@ -70,7 +70,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           dispatch({ type: 'HYDRATE_STATE', payload: remote });
           lastSavedState.current = JSON.stringify(remote);
         }
-      } finally { if(!cancelled) setLoading(false); }
+      } finally { if (!cancelled) setLoading(false); }
     })();
     return () => { cancelled = true; };
   }, [user, activeWorkspaceId, dispatch]);
@@ -85,10 +85,10 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     saveTimer.current = setTimeout(async () => {
       setSaving(true);
       try {
-  await saveWorkspaceTracker(activeWorkspaceId, current, user.uid);
+        await saveWorkspaceTracker(activeWorkspaceId, current, user.uid);
         lastSavedState.current = serialized;
         setLastError(null);
-      } catch(e) {
+      } catch (e) {
         console.warn('Save workspace tracker failed', e);
         setLastError(e instanceof Error ? e.message : 'Errore salvataggio');
       }
@@ -117,9 +117,9 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     try {
       const list = await listUserWorkspaces(user.uid);
       setWorkspaces(list);
-      if(activateId && list.some(w => w.id === activateId)) {
+      if (activateId && list.some(w => w.id === activateId)) {
         setActiveWorkspaceId(activateId);
-      } else if(!activeWorkspaceId && list.length) {
+      } else if (!activeWorkspaceId && list.length) {
         setActiveWorkspaceId(list[0].id);
       }
     } finally { setLoading(false); }
@@ -143,6 +143,6 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
 export function useWorkspace() {
   const ctx = useContext(WorkspaceContext);
-  if(!ctx) throw new Error('useWorkspace must be used within WorkspaceProvider');
+  if (!ctx) throw new Error('useWorkspace must be used within WorkspaceProvider');
   return ctx;
 }

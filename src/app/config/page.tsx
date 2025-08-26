@@ -175,7 +175,7 @@ export default function Config() {
                         )}
                       </div>
                       <span className="text-xs px-2 py-0.5 rounded bg-white/40 dark:bg-white/10 capitalize">{inv.status}</span>
-                       {canAct && (
+                      {canAct && (
                         <div className="flex gap-1">
                           <button
                             onClick={async () => { await acceptInvite(inv.id, user!.uid); const data = await listWorkspaceInvites(activeWorkspaceId!); setInvites(data as Invite[]); }}
@@ -189,7 +189,7 @@ export default function Config() {
                       )}
                       {(canDeletePending || canRemoveAccepted) && (
                         <button
-                          onClick={() => { setConfirmTarget(inv); setConfirmMode(canDeletePending ? 'delete-pending':'remove-accepted'); setConfirmOpen(true); }}
+                          onClick={() => { setConfirmTarget(inv); setConfirmMode(canDeletePending ? 'delete-pending' : 'remove-accepted'); setConfirmOpen(true); }}
                           className="glass-button glass-button--xs"
                           title={canDeletePending ? 'Elimina invito' : 'Rimuovi membro'}
                         >✕</button>
@@ -265,12 +265,12 @@ export default function Config() {
         variant={confirmMode === 'remove-accepted' ? 'danger' : 'neutral'}
         onCancel={() => { setConfirmOpen(false); setConfirmTarget(null); setConfirmMode(null); }}
         onConfirm={async () => {
-          if(!confirmTarget || !user || !activeWorkspaceId) return;
+          if (!confirmTarget || !user || !activeWorkspaceId) return;
           try {
-            if(confirmMode === 'delete-pending') {
+            if (confirmMode === 'delete-pending') {
               await deleteWorkspaceInvite(confirmTarget.id, user.uid);
               setToast('Invito eliminato');
-            } else if(confirmMode === 'remove-accepted') {
+            } else if (confirmMode === 'remove-accepted') {
               await removeAcceptedInvite(confirmTarget.id, user.uid);
               setToast('Membro rimosso');
             }
