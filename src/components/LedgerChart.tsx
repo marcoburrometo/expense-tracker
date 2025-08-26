@@ -210,7 +210,7 @@ export const LedgerChart: React.FC = () => {
           {hoverPoint.projected && <div className="text-[10px] text-indigo-600">proiezione</div>}
         </div>}
       </div>
-      <div className="mt-1 text-[11px] text-neutral-600 dark:text-neutral-400 flex gap-4 flex-wrap">
+  <div className="mt-1 text-[11px] text-muted flex gap-4 flex-wrap">
         <span>Min: € {min.toFixed(2)}</span>
         <span>Max: € {max.toFixed(2)}</span>
         {points.length>0 && <span>Ultimo reale: € {points.filter(p=>!p.projected).slice(-1)[0]?.balance.toFixed(2) || '—'}</span>}

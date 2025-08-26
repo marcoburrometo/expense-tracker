@@ -23,7 +23,7 @@ export const Navbar: React.FC = () => {
             key={l.href}
             href={l.href}
             aria-current={active ? 'page' : undefined}
-            className={`relative font-medium transition-colors ${active ? 'text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-indigo-500 after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full after:rounded-full after:bg-gradient-to-r after:from-blue-500 after:to-indigo-500' : 'hover:underline underline-offset-4 text-neutral-700 dark:text-neutral-200'}`}
+            className={`relative font-medium transition-colors ${active ? 'text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-indigo-500 after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full after:rounded-full after:bg-gradient-to-r after:from-blue-500 after:to-indigo-500' : 'hover:underline underline-offset-4 text-neutral-700'}`}
           >
             {l.label}
           </Link>

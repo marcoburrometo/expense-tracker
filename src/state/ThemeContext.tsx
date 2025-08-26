@@ -17,8 +17,7 @@ function getSystemPref(): 'light'|'dark' {
 }
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const themeState: [ThemeMode, React.Dispatch<React.SetStateAction<ThemeMode>>] = useState<ThemeMode>('system');
-  const [mode, setThemeMode] = themeState;
+  const [mode, setThemeMode] = useState<ThemeMode>('system');
   const [effective, setEffective] = useState<'light'|'dark'>(getSystemPref());
 
   // apply to document
@@ -29,6 +28,15 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const root = document.documentElement;
     root.dataset.theme = eff; // html[data-theme="dark"|"light"]
     root.dataset.themeMode = m; // preserve original choice
+    // Sync legacy Tailwind dark mode class so dark: utilities work even with custom data attributes
+    if (eff === 'dark') {
+      root.classList.add('dark');
+      root.classList.remove('light');
+    } else {
+      root.classList.remove('dark');
+      root.classList.add('light');
+    }
+  // The 'dark' class drives Tailwind class-based dark mode per tailwind.config.js (darkMode: 'class')
     // optional: remove previously set class names
   }, []);
 

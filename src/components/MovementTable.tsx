@@ -180,10 +180,10 @@ export const MovementTable: React.FC = () => {
         </div>
       </div>
       <div className="px-3 py-2 border-b border-white/40 dark:border-white/10 flex gap-6 text-xs flex-wrap">
-        <span className="text-green-700 dark:text-green-400">Entrate: € {totals.inc.toFixed(2)}</span>
-        <span className="text-red-600 dark:text-red-400">Uscite: € {totals.out.toFixed(2)}</span>
-        <span className={`${totals.net>=0?'text-emerald-700 dark:text-emerald-400':'text-red-700 dark:text-red-400'}`}>Saldo Netto: € {totals.net.toFixed(2)}</span>
-  {rows.length>0 && <span className="text-neutral-500">Saldo Finale: € {rows[rows.length-1].balance.toFixed(2)}</span>}
+    <span className="text-green-700 dark:text-green-400">Entrate: € {totals.inc.toFixed(2)}</span>
+    <span className="text-red-600 dark:text-red-400">Uscite: € {totals.out.toFixed(2)}</span>
+    <span className={`${totals.net>=0?'text-emerald-700 dark:text-emerald-400':'text-red-700 dark:text-red-400'}`}>Saldo Netto: € {totals.net.toFixed(2)}</span>
+  {rows.length>0 && <span className="text-muted">Saldo Finale: € {rows[rows.length-1].balance.toFixed(2)}</span>}
       </div>
       <div className="overflow-auto max-h-[480px] glass-scroll">
         <table className="glass-table">

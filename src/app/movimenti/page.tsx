@@ -6,7 +6,7 @@ export default function MovimentiPage() {
     <main className="mx-auto max-w-7xl p-6 md:p-10 space-y-8">
       <header className="space-y-2">
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Movimenti</h1>
-        <p className="text-sm text-neutral-600 dark:text-neutral-400">Elenco cronologico di entrate e uscite con saldo progressivo e trend.</p>
+  <p className="text-sm text-muted">Elenco cronologico di entrate e uscite con saldo progressivo e trend.</p>
       </header>
       <div className="grid gap-6 md:grid-cols-3">
         <div className="md:col-span-2 space-y-4">
