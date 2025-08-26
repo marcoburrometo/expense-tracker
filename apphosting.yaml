@@ -24,3 +24,18 @@ runConfig:
 env:
   - variable: NEXT_PUBLIC_FIREBASE_API_KEY
     secret: firebase_api_key
+
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    secret: firebase_api_key
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    secret: firebase_auth_domain
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    secret: firebase_project_id
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    secret: firebase_storage_bucket
+  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    secret: firebase_messaging_sender_id
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    secret: firebase_app_id
+  - variable: NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
+    secret: firebase_measurement_id
