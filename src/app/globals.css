@@ -318,6 +318,7 @@ html[data-contrast='high'] .glass-button { background: var(--surface-glass-solid
 /* Utility clamp */
 .line-clamp-1 { display: -webkit-box; -webkit-line-clamp: 1; line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
 
+
 /* Micro-interactions */
 .pressable { transition: transform .18s cubic-bezier(.4,.0,.2,1); }
 .pressable:active { transform: scale(.96); }

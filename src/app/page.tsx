@@ -6,8 +6,8 @@ export default function HomeMovements() {
   return (
     <main className="mx-auto max-w-7xl p-4 md:p-8 space-y-6">
       <header className="space-y-2 fade-in">
-  <h1 className="text-2xl md:text-3xl font-bold tracking-tight heading-gradient">Movimenti</h1>
-        <p className="text-sm text-neutral-800 dark:text-neutral-400">Vista principale dei movimenti con saldo cumulato, proiezioni e grafico.</p>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight heading-gradient">Movimenti</h1>
+  <p className="text-sm text-neutral-800 dark:text-neutral-400">Vista principale dei movimenti con saldo cumulato, proiezioni e grafico.</p>
       </header>
       <div className="fade-in" style={{animationDelay: '.05s'}}>
         <DashboardStats />

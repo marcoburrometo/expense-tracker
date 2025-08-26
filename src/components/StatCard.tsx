@@ -10,10 +10,10 @@ interface StatCardProps {
 }
 
 const accentMap: Record<NonNullable<StatCardProps['accent']>, string> = {
-  green: 'from-emerald-500/80 to-emerald-400/60 text-emerald-800 dark:text-emerald-100',
-  red: 'from-rose-500/80 to-rose-400/60 text-rose-800 dark:text-rose-100',
-  blue: 'from-sky-500/80 to-sky-400/60 text-sky-800 dark:text-sky-100',
-  indigo: 'from-indigo-500/80 to-indigo-400/60 text-indigo-800 dark:text-indigo-100',
+  green: 'from-emerald-500/80 to-emerald-400/60 text-emerald-800 dark:text-emerald-50',
+  red: 'from-rose-500/80 to-rose-400/60 text-rose-800 dark:text-rose-50',
+  blue: 'from-sky-500/80 to-sky-400/60 text-sky-800 dark:text-sky-50',
+  indigo: 'from-indigo-500/80 to-indigo-400/60 text-indigo-800 dark:text-indigo-50',
   neutral: 'from-slate-400/70 to-slate-300/50 text-slate-800 dark:text-slate-50'
 };
 

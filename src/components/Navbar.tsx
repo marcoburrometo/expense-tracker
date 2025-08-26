@@ -15,7 +15,7 @@ export const Navbar: React.FC = () => {
   const pathname = usePathname();
   const { effective, mode, toggle, setMode } = useTheme();
   return (
-    <div className="glass-panel px-5 py-3 flex items-center gap-6 text-sm">
+  <div className="glass-panel px-5 py-3 flex items-center gap-6 text-sm">
       {links.map(l => {
         const active = l.match ? l.match(pathname) : pathname === l.href;
         return (
@@ -30,7 +30,7 @@ export const Navbar: React.FC = () => {
         );
       })}
       <div className="ml-auto flex gap-3 items-center">
-        <button onClick={toggle} aria-label="Toggle tema" className="glass-button" title={`Tema: ${effective}`}>
+  <button onClick={toggle} aria-label="Toggle tema" className="glass-button pressable" title={`Tema: ${effective}`}>
           {effective === 'dark' ? '🌙' : '☀️'}
         </button>
   <select aria-label="Modalità tema" value={mode} onChange={e=>setMode(e.target.value as 'light'|'dark'|'system')} className="glass-input text-xs">
