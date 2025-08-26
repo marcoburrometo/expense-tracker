@@ -5,8 +5,9 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
-    "start": "next start",
-    "lint": "eslint"
+  "start": "next start",
+  "lint": "eslint",
+  "deploy": "NODE_ENV=production && npm run build && firebase deploy"
   },
   "dependencies": {
     "react": "19.1.0",
