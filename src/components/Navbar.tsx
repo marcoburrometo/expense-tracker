@@ -9,6 +9,7 @@ interface NavItem { href: string; label: string; match?: (path: string)=> boolea
 const links: NavItem[] = [
   { href: '/', label: 'Movimenti', match: p => p === '/' },
   { href: '/config', label: 'Config', match: p => p.startsWith('/config') },
+  { href: '/calendar', label: 'Calendario', match: p => p.startsWith('/calendar') },
 ];
 
 export const Navbar: React.FC = () => {

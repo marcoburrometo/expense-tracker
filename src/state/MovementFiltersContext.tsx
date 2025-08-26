@@ -36,7 +36,34 @@ export const MovementFiltersProvider: React.FC<{ children: React.ReactNode }> = 
   const [state, setState] = useState<MovementFiltersState>(defaults);
 
   const setFilters = useCallback((fn: (p: MovementFiltersState)=>MovementFiltersState) => setState(fn), []);
-  const update = useCallback((patch: Partial<MovementFiltersState>) => setState(s=> ({ ...s, ...patch })), []);
+  const update = useCallback((patch: Partial<MovementFiltersState>) => {
+    setState(s => {
+      let changed = false;
+      const draft: MovementFiltersState = { ...s };
+      (Object.keys(patch) as (keyof MovementFiltersState)[]).forEach(k => {
+        const val = patch[k];
+        if(val !== undefined && draft[k] !== val){
+          switch(k){
+            case 'from':
+            case 'to':
+            case 'category':
+            case 'q':
+              draft[k] = val as MovementFiltersState[typeof k]; break;
+            case 'dir':
+              draft[k] = val as MovementFiltersState['dir']; break;
+            case 'sortDesc':
+            case 'includeProj':
+            case 'smooth':
+              draft[k] = val as MovementFiltersState[typeof k]; break;
+            default:
+              break;
+          }
+          changed = true;
+        }
+      });
+      return changed ? draft : s;
+    });
+  }, []);
   const reset = useCallback(()=> setState(defaults), [defaults]);
 
   const value: MovementFiltersContextValue = useMemo(()=> ({ ...state, setFilters, update, reset }), [state, setFilters, update, reset]);

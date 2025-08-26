@@ -41,7 +41,7 @@ export const Confirm: React.FC<ConfirmProps> = ({
     function onKey(e: KeyboardEvent){
       if(!open) return;
       if(e.key === 'Escape'){ e.preventDefault(); onCancel(); }
-      if(e.key === 'Enter'){ if(!disabled){ e.preventDefault(); onConfirm(); } }
+  // Do not auto-confirm on Enter to allow form inputs inside details
     }
     window.addEventListener('keydown', onKey);
     return ()=> window.removeEventListener('keydown', onKey);
@@ -64,6 +64,14 @@ export const Confirm: React.FC<ConfirmProps> = ({
 
   const node = (
     <div className="modal-overlay" aria-hidden={!open} data-confirm-root>
+      <button
+        type="button"
+        aria-label="Chiudi"
+        className="absolute inset-0 w-full h-full cursor-default bg-transparent"
+        onClick={onCancel}
+        onKeyDown={(e)=> { if(e.key==='Escape' || e.key==='Enter'){ onCancel(); } }}
+        tabIndex={-1}
+      />
       <dialog open aria-labelledby="confirm-title" className="modal-panel glass-panel modal-enter w-full max-w-md m-0 flex flex-col p-5 space-y-4 bg-transparent max-h-[85vh]">
         <div className="space-y-2 flex-1 flex flex-col min-h-0">
           <h2 id="confirm-title" className="font-semibold text-lg">{title}</h2>
@@ -75,12 +83,11 @@ export const Confirm: React.FC<ConfirmProps> = ({
           )}
         </div>
         <div className="flex justify-end gap-2 pt-1">
-          <button type="button" onClick={onCancel} className="glass-button glass-button--sm pressable">{cancelLabel}</button>
+          {cancelLabel && <button type="button" onClick={onCancel} className="glass-button glass-button--sm pressable">{cancelLabel}</button>}
           <button type="button" autoFocus={autoFocus} disabled={disabled} onClick={onConfirm} className={`${variantClass[variant]} glass-button--sm pressable disabled:opacity-50 disabled:cursor-not-allowed`}>{confirmLabel}</button>
         </div>
       </dialog>
-      <button aria-label="Chiudi" className="fixed inset-0 w-full h-full cursor-default focus:outline-none" onClick={onCancel} />
-    </div>
+  </div>
   );
 
   if (typeof window === 'undefined') return null;
