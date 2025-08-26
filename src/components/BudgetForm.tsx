@@ -1,10 +1,12 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useTracker } from '@/state/TrackerContext';
+import { mergeCategories } from '@/domain/categories';
 
 export const BudgetForm: React.FC = () => {
-  const { addBudget } = useTracker();
+  const { addBudget, expenses } = useTracker();
   const [category, setCategory] = useState('Generale');
+  const categories = useMemo(()=> mergeCategories(expenses.map(e=>e.category)), [expenses]);
   const [limit, setLimit] = useState('');
 
   function onSubmit(e: React.FormEvent) {
@@ -20,7 +22,9 @@ export const BudgetForm: React.FC = () => {
       <h2 className="font-semibold text-lg tracking-tight">Nuovo Budget</h2>
       <div className="grid grid-cols-2 gap-3 text-sm">
         <div className="col-span-1">
-          <input placeholder="Categoria" value={category} onChange={e=>setCategory(e.target.value)} className="w-full glass-input" />
+          <select value={category} onChange={e=>setCategory(e.target.value)} className="w-full glass-input">
+            {categories.map(c=> <option key={c} value={c}>{c}</option>)}
+          </select>
         </div>
         <div className="col-span-1">
           <input type="number" step="0.01" placeholder="Limite Mensile" value={limit} onChange={e=>setLimit(e.target.value)} className="w-full glass-input" required />

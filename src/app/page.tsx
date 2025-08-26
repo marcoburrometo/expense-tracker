@@ -1,3 +1,4 @@
+import { DashboardStats } from '../components/DashboardStats';
 import { MovementTable } from '@/components/MovementTable';
 import { LedgerChart } from '@/components/LedgerChart';
 
@@ -8,6 +9,7 @@ export default function HomeMovements() {
   <h1 className="text-2xl md:text-3xl font-bold tracking-tight heading-gradient">Movimenti</h1>
         <p className="text-sm text-neutral-600 dark:text-neutral-400">Vista principale dei movimenti con saldo cumulato, proiezioni e grafico.</p>
       </header>
+      <DashboardStats />
       <div className="grid gap-6 lg:grid-cols-5">
         <div className="lg:col-span-3 space-y-6">
           <div className="glass-panel p-2 md:p-3">

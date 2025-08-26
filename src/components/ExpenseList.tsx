@@ -1,10 +1,12 @@
 "use client";
 import React, { useMemo, useState } from 'react';
 import { useTracker } from '@/state/TrackerContext';
+import { mergeCategories } from '@/domain/categories';
 import { isTemplate, isRecurringInstance, AnyExpense } from '@/domain/types';
 
 export const ExpenseList: React.FC = () => {
   const { expenses, deleteExpense, updateExpense } = useTracker();
+  const categories = useMemo(()=> mergeCategories(expenses.map(e=> e.category)), [expenses]);
   const [filter, setFilter] = useState<'all'|'oneoff'|'recurring'>('all');
   const [editingId, setEditingId] = useState<string|null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string|null>(null);
@@ -42,7 +44,7 @@ export const ExpenseList: React.FC = () => {
   }, [expenses, filter]);
 
   return (
-  <div className="glass-panel p-5 w-full max-w-2xl space-y-3">
+  <div className="glass-panel p-5 w-full space-y-3">
       <div className="flex items-center justify-between mb-2">
         <h2 className="font-semibold text-lg">Spese</h2>
   <select value={filter} onChange={e=>setFilter(e.target.value as 'all'|'oneoff'|'recurring')} className="text-xs md:text-sm glass-input">
@@ -97,7 +99,9 @@ export const ExpenseList: React.FC = () => {
                       <option value="out">Uscita</option>
                       <option value="in">Entrata</option>
                     </select>
-                    <input className="col-span-2 glass-input" value={form.category} onChange={ev=>setForm(f=>({...f, category: ev.target.value}))} />
+                    <select className="col-span-2 glass-input" value={form.category} onChange={ev=>setForm(f=>({...f, category: ev.target.value}))}>
+                      {categories.map(c=> <option key={c} value={c}>{c}</option>)}
+                    </select>
                   </div>
                   <div className="flex gap-2 justify-end">
                     <button type="button" onClick={()=>setEditingId(null)} className="glass-button">Annulla</button>

@@ -1,10 +1,12 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useMonthlyTotals, useTracker } from '@/state/TrackerContext';
+import { mergeCategories } from '@/domain/categories';
 import { Budget } from '@/domain/types';
 
 export const BudgetSummary: React.FC = () => {
-  const { budgets, deleteBudget, updateBudget } = useTracker();
+  const { budgets, deleteBudget, updateBudget, expenses } = useTracker();
+  const categories = useMemo(()=> mergeCategories(expenses.map(e=>e.category)), [expenses]);
   const [editingId, setEditingId] = useState<string|null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string|null>(null);
   const [form, setForm] = useState<{category:string; limit:string}>({category:'', limit:''});
@@ -57,7 +59,9 @@ export const BudgetSummary: React.FC = () => {
               )}
               {editingId===b.id && (
                 <form onSubmit={e=>{e.preventDefault(); submit(b.id);}} className="flex flex-col gap-2 text-xs">
-                  <input className="glass-input" value={form.category} onChange={e=>setForm(f=>({...f, category: e.target.value}))} />
+                  <select className="glass-input" value={form.category} onChange={e=>setForm(f=>({...f, category: e.target.value}))}>
+                    {categories.map(c=> <option key={c} value={c}>{c}</option>)}
+                  </select>
                   <input className="glass-input" type="number" step="0.01" value={form.limit} onChange={e=>setForm(f=>({...f, limit: e.target.value}))} />
                   <div className="flex gap-2 justify-end">
                     <button type="button" onClick={()=>setEditingId(null)} className="glass-button">Annulla</button>

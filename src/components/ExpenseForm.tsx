@@ -1,14 +1,16 @@
 "use client";
 import React, { useState, useEffect, useMemo } from 'react';
 import { useTracker } from '@/state/TrackerContext';
+import { mergeCategories } from '@/domain/categories';
 
 export const ExpenseForm: React.FC = () => {
-  const { addOneOff, addRecurringTemplate } = useTracker();
+  const { addOneOff, addRecurringTemplate, expenses } = useTracker();
   const [mode, setMode] = useState<'oneoff' | 'recurring'>('oneoff');
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [category, setCategory] = useState('Generale');
+  const categories = useMemo(()=> mergeCategories(expenses.map(e=>e.category)), [expenses]);
   const [frequency, setFrequency] = useState<'weekly' | 'monthly' | 'yearly'>('monthly');
   const [direction, setDirection] = useState<'in'|'out'>('out');
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -86,7 +88,12 @@ export const ExpenseForm: React.FC = () => {
           {touched.date && errors.date && <p className="text-[10px] text-red-600 mt-0.5">{errors.date}</p>}
         </div>
         <div>
-          <input placeholder="Categoria" value={category} onChange={e=>setCategory(e.target.value)} className="w-full glass-input" />
+          <select value={category} onChange={e=>setCategory(e.target.value)} className="w-full glass-input">
+            {!categories.includes(category) && <option value={category}>{category}</option>}
+            {categories.map(c=> (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
         </div>
         <div>
           <select value={direction} onChange={e=>setDirection(e.target.value as 'in'|'out')} className="w-full glass-input">
