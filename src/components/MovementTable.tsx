@@ -15,9 +15,46 @@ function formatCSV(rows: Row[]): string {
 }
 
 export const MovementTable: React.FC = () => {
-  const { expenses, deleteExpense } = useTracker();
+  const { expenses, deleteExpense, updateExpense } = useTracker();
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [density, setDensity] = useState<'normal' | 'compact'>('normal');
+  const [sortField, setSortField] = useState<'date' | 'amount' | 'balance'>('date');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValues, setEditValues] = useState<{ description: string; amount: string; category: string; direction: 'in' | 'out'; date: string } | null>(null);
+
+  function startEdit(id: string) {
+    const target = rows.find(r => r.id === id);
+    if (!target) return;
+    setEditingId(id);
+    setEditValues({
+      description: target.description,
+      amount: String(target.amount),
+      category: target.category,
+      direction: target.direction,
+      date: target.date,
+    });
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setEditValues(null);
+  }
+
+  function commitEdit() {
+    if (!editingId || !editValues) return;
+    const amt = parseFloat(editValues.amount);
+    if (isNaN(amt) || amt <= 0) { return; }
+    updateExpense(editingId, {
+      description: editValues.description.trim(),
+      amount: amt,
+      category: editValues.category.trim(),
+      direction: editValues.direction,
+      date: editValues.date,
+    });
+    cancelEdit();
+  }
+
 
   // Shared filters from context
   const { from, to, q, dir, category, sortDesc, update, includeProj } = useMovementFilters();
@@ -104,7 +141,7 @@ export const MovementTable: React.FC = () => {
     const start = from ? new Date(from) : null;
     const end = to ? new Date(to) : null;
     const text = q.trim().toLowerCase();
-    return baseItems
+    const filtered = baseItems
       .filter(i => {
         const d = new Date(i.date);
         if (start && d < start) return false;
@@ -113,9 +150,18 @@ export const MovementTable: React.FC = () => {
         if (category && i.category !== category) return false;
         if (text && !(i.description.toLowerCase().includes(text) || i.category.toLowerCase().includes(text))) return false;
         return true;
-      })
-      .sort((a, b) => sortDesc ? b.date.localeCompare(a.date) : a.date.localeCompare(b.date));
-  }, [baseItems, from, to, q, dir, category, sortDesc]);
+      });
+    const sorted = [...filtered].sort((a, b) => {
+      if (sortField === 'date') {
+        return (sortDesc ? b.date.localeCompare(a.date) : a.date.localeCompare(b.date));
+      } else if (sortField === 'amount') {
+        return sortDesc ? b.amount - a.amount : a.amount - b.amount;
+      } else { // balance sort requires computing running balances first; fallback to amount for now
+        return sortDesc ? b.amount - a.amount : a.amount - b.amount;
+      }
+    });
+    return sorted;
+  }, [baseItems, from, to, q, dir, category, sortDesc, sortField]);
 
   const rows = useMemo<Row[]>(() => {
     let balance = 0;
@@ -127,14 +173,24 @@ export const MovementTable: React.FC = () => {
       return { id: e.id, date: e.date.slice(0, 10), description: e.description, category: e.category, direction: e.direction, amount: e.amount, balance, projected };
     });
     // Present rows in current sort direction
-    return sortDesc ? [...computed].sort((a, b) => b.date.localeCompare(a.date)) : computed;
-  }, [filteredSorted, sortDesc]);
+    let presented = computed;
+    if (sortField === 'date') {
+      presented = sortDesc ? [...computed].sort((a, b) => b.date.localeCompare(a.date)) : computed;
+    } else if (sortField === 'amount') {
+      presented = [...computed].sort((a, b) => sortDesc ? b.amount - a.amount : a.amount - b.amount);
+    } else if (sortField === 'balance') {
+      presented = [...computed].sort((a, b) => sortDesc ? b.balance - a.balance : a.balance - b.balance);
+    }
+    return presented;
+  }, [filteredSorted, sortDesc, sortField]);
 
   const totals = useMemo(() => {
     let inc = 0, out = 0;
     rows.forEach(r => { if (r.direction === 'in') inc += r.amount; else out += r.amount; });
     return { inc, out, net: inc - out };
   }, [rows]);
+
+  const nf = useMemo(() => new Intl.NumberFormat(undefined, { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2, signDisplay: 'always' }), []);
 
   function exportCSV() {
     const csv = formatCSV(rows.slice().sort((a, b) => a.date.localeCompare(b.date)));
@@ -146,6 +202,17 @@ export const MovementTable: React.FC = () => {
     a.click();
     URL.revokeObjectURL(url);
   }
+
+  function toggleSort(field: typeof sortField) {
+    if (sortField === field) {
+      update({ sortDesc: !sortDesc });
+    } else {
+      setSortField(field);
+    }
+  }
+
+  const headerBase = 'px-2 py-1 text-left select-none cursor-pointer hover:text-accent transition-colors';
+  const headerRight = headerBase + ' text-right';
 
   const deleteTarget = deleteId ? rows.find(r => r.id === deleteId) : null;
   const confirmDescription = deleteTarget ? <>Confermi l&apos;eliminazione di <span className="font-medium">{deleteTarget.description}</span>? Questa azione è irreversibile.</> : null;
@@ -159,8 +226,8 @@ export const MovementTable: React.FC = () => {
   ) : null;
 
   return (
-    <div className="flex flex-col h-full min-h-0">
-      <div className="p-3 border-b border-white/40 dark:border-white/10 flex flex-wrap gap-3 items-end text-xs md:text-[13px]">
+    <div data-density={density} className={`flex flex-col h-full min-h-0 glass-panel glass-panel--pure p-2 md:p-3 gap-2 ${density === 'compact' ? 'density-compact' : ''}`}>
+      <div className="flex flex-wrap gap-3 items-end text-[11px] md:text-[13px]">
         <div className="flex flex-col">
           <label htmlFor="mov-from" className="uppercase tracking-wide text-[10px] font-semibold">Da</label>
           <input id="mov-from" type="date" value={from} onChange={e => update({ from: e.target.value })} className="glass-input" />
@@ -188,53 +255,150 @@ export const MovementTable: React.FC = () => {
           <label htmlFor="mov-search" className="uppercase tracking-wide text-[10px] font-semibold">Cerca</label>
           <input id="mov-search" placeholder="testo o categoria" value={q} onChange={e => update({ q: e.target.value })} className="glass-input" />
         </div>
-        <div className="flex gap-2 ml-auto">
-          <button onClick={() => update({ sortDesc: !sortDesc })} className="glass-button" aria-label="Cambia ordinamento">{sortDesc ? '↓' : '↑'} Ordina</button>
-          <button onClick={exportCSV} className="glass-button glass-button--primary" aria-label="Esporta file CSV">Export CSV</button>
+        <div className="flex gap-2 ml-auto items-end">
+          <button onClick={() => setDensity(d => d === 'normal' ? 'compact' : 'normal')} className="glass-button glass-button--sm" aria-label="Toggle densità tabella">Densità: {density === 'normal' ? 'Normale' : 'Compatta'}</button>
+          <button onClick={exportCSV} className="glass-button glass-button--primary glass-button--sm" aria-label="Esporta file CSV">Export</button>
         </div>
       </div>
-      <div className="px-3 py-2 border-b border-white/40 dark:border-white/10 flex gap-6 text-xs flex-wrap">
-        <span className="text-success">Entrate: € {totals.inc.toFixed(2)}</span>
-        <span className="text-danger">Uscite: € {totals.out.toFixed(2)}</span>
-        <span className={totals.net >= 0 ? 'text-success' : 'text-danger'}>Saldo Netto: € {totals.net.toFixed(2)}</span>
-        {rows.length > 0 && <span className="text-secondary">Saldo Finale: € {rows[rows.length - 1].balance.toFixed(2)}</span>}
+      <div className="mov-summary px-2 md:px-3 py-2 glass-panel glass-panel--pure flex gap-4 text-[11px] md:text-xs flex-wrap items-center">
+        <span className="text-success font-medium">Entrate: {nf.format(totals.inc)}</span>
+        <span className="text-danger font-medium">Uscite: {nf.format(totals.out)}</span>
+        <span className={(totals.net >= 0 ? 'text-success' : 'text-danger') + ' font-semibold'}>Saldo Netto: {nf.format(totals.net)}</span>
+        {rows.length > 0 && <span className="text-secondary">Saldo Finale: {nf.format(rows[rows.length - 1].balance)}</span>}
+        <span className="ml-auto opacity-60 text-[10px]">Ordinamento: {sortField} {sortDesc ? '↓' : '↑'}</span>
       </div>
-      <div className="overflow-auto flex-1 min-h-0 glass-scroll">
-        <table className="glass-table">
-          <thead className="sticky top-0 bg-white/55 dark:bg-slate-800/45 backdrop-blur text-neutral-700 dark:text-neutral-200 shadow-sm">
-            <tr>
-              <th className="px-2 py-1 text-left">Data</th>
-              <th className="px-2 py-1 text-left">Descrizione</th>
-              <th className="px-2 py-1 text-left">Categoria</th>
-              <th className="px-2 py-1 text-right">Entrate</th>
-              <th className="px-2 py-1 text-right">Uscite</th>
-              <th className="px-2 py-1 text-right">Saldo</th>
-              <th className="px-2 py-1 text-right">Azioni</th>
+      <div className={`overflow-auto flex-1 min-h-0 glass-scroll rounded-md border border-white/30 dark:border-white/5 ${density === 'compact' ? 'text-[11px]' : 'text-[12px]'}`}>
+        <table className="glass-table w-full">
+          <thead className="sticky top-0 z-10 bg-white/65 dark:bg-slate-900/55 backdrop-blur-xl shadow-sm">
+            <tr className="[&_th]:font-semibold">
+              <th
+                className={headerBase}
+                role="columnheader"
+                aria-sort={sortField === 'date' ? (sortDesc ? 'descending' : 'ascending') : 'none'}
+                onClick={() => toggleSort('date')}
+                tabIndex={0}
+                onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleSort('date'); } }}
+              >Data</th>
+              <th className={headerBase}>Descrizione</th>
+              <th className="px-2 py-1 text-left hidden md:table-cell">Categoria</th>
+              <th
+                className={headerRight}
+                role="columnheader"
+                aria-sort={sortField === 'amount' ? (sortDesc ? 'descending' : 'ascending') : 'none'}
+                onClick={() => toggleSort('amount')}
+                tabIndex={0}
+                onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleSort('amount'); } }}
+              >Importo</th>
+              <th
+                className={headerRight + ' hidden sm:table-cell'}
+                role="columnheader"
+                aria-sort={sortField === 'balance' ? (sortDesc ? 'descending' : 'ascending') : 'none'}
+                onClick={() => toggleSort('balance')}
+                tabIndex={0}
+                onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleSort('balance'); } }}
+              >Saldo</th>
+              <th className={headerRight}>Azioni</th>
             </tr>
           </thead>
-          <tbody>
-            {rows.map(r => (
-              <tr key={r.id}>
-                <td className="px-2 py-1 font-mono tabular-nums">{r.date}</td>
-                <td className="px-2 py-1">{r.description} {r.projected && <span className="ml-1 glass-badge badge-future">FUTURO</span>}</td>
-                <td className="px-2 py-1">{r.category}</td>
-                <td className="px-2 py-1 text-right font-mono text-success">{r.direction === 'in' ? `€ ${r.amount.toFixed(2)}` : ''}</td>
-                <td className="px-2 py-1 text-right font-mono text-danger">{r.direction === 'out' ? `€ ${r.amount.toFixed(2)}` : ''}</td>
-                <td className={`px-2 py-1 text-right font-mono ${r.balance >= 0 ? 'text-success' : 'text-danger'}`}>€ {r.balance.toFixed(2)}</td>
-                <td className="px-2 py-1 text-right">
-                  {!r.projected ? (
-                    <button
-                      onClick={() => { setDeleteId(r.id); setModalOpen(true); }}
-                      className="glass-button glass-button--danger glass-button--sm pressable"
-                      aria-label="Elimina movimento"
-                    >✕</button>
-                  ) : <span className="text-[10px] opacity-50">—</span>}
-                </td>
-              </tr>
-            ))}
+          <tbody className="[&_tr]:transition-colors [&_tr:hover]:bg-white/55 dark:[&_tr:hover]:bg-slate-700/35">
+            {rows.map(r => {
+              const amountSigned = r.direction === 'in' ? r.amount : -r.amount;
+              const isEditing = editingId === r.id && editValues;
+              return (
+                <tr key={r.id} className={(r.projected ? 'opacity-80 italic row-projected ' : '') + (isEditing ? ' outline outline-[var(--accent)] bg-white/60 dark:bg-slate-700/50 ' : '')}>
+                  {isEditing ? (
+                    <>
+                      <td className="px-2 py-1 font-mono tabular-nums whitespace-nowrap">
+                        <input
+                          type="date"
+                          value={editValues!.date}
+                          onChange={e => setEditValues(v => v ? { ...v, date: e.target.value } : v)}
+                          className="glass-input glass-input--sm min-w-[120px]"
+                        />
+                      </td>
+                      <td className="px-2 py-1 max-w-[260px] md:max-w-[320px]">
+                        <input
+                          value={editValues!.description}
+                          onChange={e => setEditValues(v => v ? { ...v, description: e.target.value } : v)}
+                          className="glass-input glass-input--sm w-full mb-1"
+                          placeholder="Descrizione"
+                        />
+                        <div className="flex gap-1 items-center">
+                          <input
+                            type="text"
+                            value={editValues!.category}
+                            onChange={e => setEditValues(v => v ? { ...v, category: e.target.value } : v)}
+                            className="glass-input glass-input--sm text-[10px] flex-1"
+                            placeholder="Categoria"
+                          />
+                          <select
+                            value={editValues!.direction}
+                            onChange={e => setEditValues(v => v ? { ...v, direction: e.target.value as 'in' | 'out' } : v)}
+                            className="glass-input glass-input--sm text-[10px]"
+                          >
+                            <option value="out">−</option>
+                            <option value="in">+</option>
+                          </select>
+                        </div>
+                      </td>
+                      <td className="px-2 py-1 hidden md:table-cell">
+                        <input
+                          type="text"
+                          value={editValues!.category}
+                          onChange={e => setEditValues(v => v ? { ...v, category: e.target.value } : v)}
+                          className="glass-input glass-input--sm w-full"
+                        />
+                      </td>
+                      <td className="px-2 py-1 text-right font-mono tabular-nums">
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={editValues!.amount}
+                          onChange={e => setEditValues(v => v ? { ...v, amount: e.target.value } : v)}
+                          className="glass-input glass-input--sm w-[90px] text-right font-mono"
+                        />
+                      </td>
+                      <td className="px-2 py-1 text-right font-mono tabular-nums hidden sm:table-cell">{nf.format(r.balance)}</td>
+                      <td className="px-2 py-1 text-right whitespace-nowrap flex gap-1 justify-end">
+                        <button onClick={commitEdit} className="glass-button glass-button--sm glass-button--success" aria-label="Salva modifiche">✓</button>
+                        <button onClick={cancelEdit} className="glass-button glass-button--sm glass-button--neutral" aria-label="Annulla modifica">↺</button>
+                      </td>
+                    </>
+                  ) : (
+                    <>
+                      <td className="px-2 py-1 font-mono tabular-nums whitespace-nowrap">{r.date}</td>
+                      <td className="px-2 py-1 max-w-[260px] md:max-w-[320px]">
+                        <span className="block truncate font-medium">{r.description}</span>
+                        <span className="md:hidden block text-[10px] opacity-60 mt-0.5">{r.category}</span>
+                        {r.projected && <span className="ml-1 glass-badge badge-future">FUTURO</span>}
+                      </td>
+                      <td className="px-2 py-1 hidden md:table-cell">{r.category}</td>
+                      <td className={`px-2 py-1 text-right font-mono tabular-nums ${amountSigned >= 0 ? 'text-success' : 'text-danger'}`}>{nf.format(amountSigned)}</td>
+                      <td className={`px-2 py-1 text-right font-mono tabular-nums hidden sm:table-cell ${r.balance >= 0 ? 'text-success' : 'text-danger'}`}>{nf.format(r.balance)}</td>
+                      <td className="px-2 py-1 text-right whitespace-nowrap flex gap-1 justify-end">
+                        {!r.projected && (
+                          <button
+                            onClick={() => startEdit(r.id)}
+                            className="glass-button glass-button--xs pressable"
+                            aria-label="Modifica movimento"
+                          >✎</button>
+                        )}
+                        {!r.projected ? (
+                          <button
+                            onClick={() => { setDeleteId(r.id); setModalOpen(true); }}
+                            className="glass-button glass-button--danger glass-button--xs pressable"
+                            aria-label="Elimina movimento"
+                          >✕</button>
+                        ) : <span className="text-[10px] opacity-40">—</span>}
+                      </td>
+                    </>
+                  )}
+                </tr>
+              );
+            })}
             {!rows.length && (
               <tr>
-                <td colSpan={7} className="text-center px-2 py-6 text-neutral-500">Nessun movimento</td>
+                <td colSpan={6} className="text-center px-2 py-6 text-neutral-500">Nessun movimento</td>
               </tr>
             )}
           </tbody>

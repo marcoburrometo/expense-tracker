@@ -66,7 +66,11 @@ export async function loadWorkspaceTracker(workspaceId: string): Promise<Tracker
 
 export async function saveWorkspaceTracker(workspaceId: string, tracker: TrackerState, actorId?: string): Promise<void> {
   const ref = doc(db(), WS_TRACKERS_COLLECTION, workspaceId);
-  await setDoc(ref, { workspaceId, tracker, updatedAt: serverTimestamp() }, { merge: true });
+  // Firestore rejects any field value that is strictly undefined anywhere within the object graph.
+  // Defensive sanitization: deep-strip undefined (without mutating original) prior to persistence.
+  // JSON stringify/parse is acceptable here because tracker contains only POJOs / primitives.
+  const sanitizedTracker = JSON.parse(JSON.stringify(tracker)) as TrackerState;
+  await setDoc(ref, { workspaceId, tracker: sanitizedTracker, updatedAt: serverTimestamp() }, { merge: true });
   log(workspaceId, actorId || null, 'tracker.save', { expenses: tracker.expenses.length, budgets: tracker.budgets.length });
 }
 

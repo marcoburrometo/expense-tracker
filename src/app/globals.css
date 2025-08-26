@@ -205,12 +205,15 @@ html.dark :where(body) {
 }
 
 /* Scroll gradient now applied to the internal scrolling container */
+/* Light theme main scrollable gradient background
+   Tweaked to reduce initial brightness (was 0.55 -> 0.35, 0.06 -> 0.02) and slightly deepen base panel hues */
 .app-main {
   background:
-    radial-gradient(circle at 32% 18%, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.06) 52%, rgba(255, 255, 255, 0) 70%),
-    linear-gradient(120deg, rgba(209, 243, 255, 0.18), rgba(186, 235, 255, 0.10) 55%, rgba(200, 244, 255, 0.14)),
-    linear-gradient(120deg, #edf3f8, #dde9f7 55%, #e6f4f7),
-    radial-gradient(circle at 50% 72%, rgba(0, 34, 68, 0), rgba(0, 18, 40, 0.06) 55%, rgba(0, 18, 40, 0.10));
+    radial-gradient(circle at 32% 18%, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0.02) 52%, rgba(255, 255, 255, 0) 70%),
+    linear-gradient(120deg, rgba(209, 243, 255, 0.14), rgba(186, 235, 255, 0.08) 55%, rgba(200, 244, 255, 0.10)),
+    /* base tint layer slightly darkened */
+    linear-gradient(120deg, #e6edf4, #d6e3f2 55%, #deeff2),
+    radial-gradient(circle at 50% 72%, rgba(0, 34, 68, 0), rgba(0, 18, 40, 0.055) 55%, rgba(0, 18, 40, 0.10));
   background-attachment: local, local, local, local;
 }
 
@@ -629,12 +632,20 @@ html.dark .glass-input::placeholder {
   border-radius: var(--radius-sm);
 }
 
+/* Extra–small button used in dense tables / actions */
+.glass-button--xs {
+  padding: 0.20rem 0.45rem;
+  font-size: 0.60rem;
+  border-radius: var(--radius-xs);
+  line-height: 1;
+}
+
 .glass-badge {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
   padding: 0.25rem 0.55rem;
-  border-radius: 999px;
+  border-radius: 6px;
   font-size: 10px;
   letter-spacing: .5px;
   font-weight: 600;
@@ -703,6 +714,28 @@ html.dark .badge-future {
 
 .glass-table tbody tr:hover {
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.65), rgba(255, 255, 255, 0.25));
+}
+
+/* Density compaction: reduce vertical padding & font-size slightly when wrapper signals compact */
+.density-compact .glass-table,
+[data-density='compact'] .glass-table {
+  font-size: 0.75rem;
+}
+
+.density-compact .glass-table th,
+.density-compact .glass-table td,
+[data-density='compact'] .glass-table th,
+[data-density='compact'] .glass-table td {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+  line-height: 1.1;
+}
+
+/* Ensure badge + buttons shrink proportionally inside compact rows */
+.density-compact .glass-badge,
+[data-density='compact'] .glass-badge {
+  padding: 0.2rem 0.45rem;
+  font-size: 9px;
 }
 
 /* Focus ring for keyboard nav rows */
@@ -818,6 +851,28 @@ html.dark .glass-stat {
   transform: translateY(0);
 }
 
+/* Movement summary panel (table recap) */
+.mov-summary {
+  border-radius: var(--radius-md);
+  background: linear-gradient(140deg, rgba(255 255 255 / 0.75), rgba(255 255 255 / 0.42));
+  border: 1px solid rgba(255 255 255 / 0.55);
+  box-shadow: inset 0 0 0 1px rgba(255 255 255 / 0.25), 0 4px 10px -4px rgba(0 0 0 / 0.15);
+  backdrop-filter: blur(20px) saturate(170%);
+  -webkit-backdrop-filter: blur(20px) saturate(170%);
+}
+
+html[data-theme='dark'] .mov-summary,
+html.dark .mov-summary {
+  background: linear-gradient(145deg, rgba(30 41 59 / 0.82), rgba(15 23 42 / 0.70));
+  border: 1px solid rgba(255 255 255 / 0.10);
+  box-shadow: inset 0 0 0 1px rgba(255 255 255 / 0.05), 0 6px 16px -8px rgba(0 0 0 / 0.65);
+}
+
+html[data-theme='dark'] .mov-summary .text-secondary,
+html.dark .mov-summary .text-secondary {
+  color: var(--text-tertiary);
+}
+
 /* Utility clamp */
 .line-clamp-1 {
   display: -webkit-box;
@@ -890,6 +945,115 @@ html.dark .skeleton {
   100% {
     background-position: 200% 0;
   }
+}
+
+/* -------------------------------------------------- */
+/* Calendar layout helpers                            */
+/* -------------------------------------------------- */
+/* Grid wrapper controlling row height via CSS vars */
+.cal-grid {
+  --cal-row-size: 96px;
+  /* default (normal density) */
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.5rem;
+  /* matches gap-2 */
+  grid-auto-rows: var(--cal-row-size);
+}
+
+/* Compact density reduces height */
+.cal-grid.cal-density-compact {
+  --cal-row-size: 72px;
+}
+
+/* Ultra-compact used automatically on very small widths */
+@media (max-width: 420px) {
+  .cal-grid {
+    --cal-row-size: 82px;
+  }
+
+  .cal-grid.cal-density-compact {
+    --cal-row-size: 66px;
+  }
+}
+
+/* Weekday header sticky inside calendar panel when panel scrolls */
+.cal-weekdays-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  padding-block: 0.25rem 0.35rem;
+  background: linear-gradient(145deg, rgba(255 255 255 / 0.85), rgba(255 255 255 / 0.55));
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  border-radius: var(--radius-md);
+  box-shadow: inset 0 0 0 1px rgba(255 255 255 / 0.35);
+}
+
+html[data-theme='dark'] .cal-weekdays-sticky,
+html.dark .cal-weekdays-sticky {
+  background: linear-gradient(145deg, rgba(51 65 85 / 0.75), rgba(30 41 59 / 0.55));
+  box-shadow: inset 0 0 0 1px rgba(255 255 255 / 0.10);
+}
+
+/* Day cell base override to rely on CSS var row size when no explicit h-* applied */
+.cal-day-btn {
+  height: 100%;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Dark mode stronger darkening for day cells to improve contrast */
+html[data-theme='dark'] .cal-day-btn,
+html.dark .cal-day-btn {
+  background: linear-gradient(150deg, rgba(15 23 42 / 0.78), rgba(15 23 42 / 0.55)) !important;
+  box-shadow: inset 0 0 0 1px rgba(255 255 255 / 0.04), 0 3px 8px -4px rgba(0 0 0 / 0.65), 0 6px 18px -10px rgba(0 0 0 / 0.6);
+}
+
+html[data-theme='dark'] .cal-day-btn[data-has-data],
+html.dark .cal-day-btn[data-has-data] {
+  background: linear-gradient(155deg, rgba(30 41 59 / 0.82), rgba(15 23 42 / 0.62)) !important;
+  box-shadow: inset 0 0 0 1px rgba(255 255 255 / 0.05), 0 4px 14px -6px rgba(0 0 0 / 0.68), 0 8px 28px -14px rgba(0 0 0 / 0.55);
+}
+
+html[data-theme='dark'] .cal-day-btn:hover,
+html.dark .cal-day-btn:hover {
+  background: linear-gradient(150deg, rgba(30 41 59 / 0.88), rgba(15 23 42 / 0.70)) !important;
+}
+
+html[data-theme='dark'] .cal-day-btn[data-has-data]:hover,
+html.dark .cal-day-btn[data-has-data]:hover {
+  background: linear-gradient(155deg, rgba(51 65 85 / 0.92), rgba(30 41 59 / 0.72)) !important;
+}
+
+/* Today highlight ring preserved */
+html[data-theme='dark'] .cal-day-btn[data-today='true'],
+html.dark .cal-day-btn[data-today='true'] {
+  box-shadow: 0 0 0 2px rgba(var(--accent-rgb)/0.55), 0 4px 14px -6px rgba(0 0 0 / 0.55);
+}
+
+/* Limit internal scroll area nicely based on density */
+.cal-day-scroll {
+  scrollbar-width: thin;
+}
+
+/* Focus ring refinement for grid navigation */
+.cal-grid [role="gridcell"][data-today="true"]:focus-visible {
+  outline: 2px solid var(--accent-alt);
+  outline-offset: 2px;
+}
+
+/* Badge for synthetic instances inside day cell unify style */
+.cal-badge-synth {
+  background: linear-gradient(145deg, rgba(99 102 241 / 0.55), rgba(99 102 241 / 0.35));
+  color: #111827;
+}
+
+html[data-theme='dark'] .cal-badge-synth,
+html.dark .cal-badge-synth {
+  background: linear-gradient(145deg, rgba(56 189 248 / 0.55), rgba(56 189 248 / 0.30));
+  color: #e0f2fe;
 }
 
 html[data-contrast='high'] .skeleton {

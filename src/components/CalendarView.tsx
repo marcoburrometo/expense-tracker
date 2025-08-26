@@ -5,7 +5,6 @@ import { AnyExpense, isTemplate, RecurringExpenseTemplate, isRecurringInstance }
 import { DayBucket, isSyntheticInstance } from '@/components/calendarTypes';
 import { DayCell } from '@/components/calendar/DayCell';
 import { DayDetails } from '@/components/calendar/DayDetails';
-import { useMovementFilters } from '@/state/MovementFiltersContext';
 import { Confirm } from '@/components/Confirm';
 
 function startOfMonth(d: Date) { return new Date(d.getFullYear(), d.getMonth(), 1); }
@@ -14,7 +13,6 @@ function fmt(date: Date) { return date.toISOString().slice(0, 10); }
 
 export const CalendarView: React.FC = () => {
   const { expenses, addOneOff } = useTracker();
-  const filters = useMovementFilters();
   const [cursor, setCursor] = useState(() => new Date());
   const [activeDay, setActiveDay] = useState<string | null>(null);
   const [formDesc, setFormDesc] = useState('');
@@ -24,6 +22,7 @@ export const CalendarView: React.FC = () => {
   const [viewMode, setViewMode] = useState<'list' | 'category'>('list');
   const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
   const [showSynthetic, setShowSynthetic] = useState(true);
+  const [density, setDensity] = useState<'normal' | 'compact'>('normal');
   const monthStart = startOfMonth(cursor);
   const monthEnd = endOfMonth(cursor);
 
@@ -134,15 +133,7 @@ export const CalendarView: React.FC = () => {
   const next = useCallback(() => { setCursor(d => new Date(d.getFullYear(), d.getMonth() + 1, 1)); }, []);
   const today = useCallback(() => { setCursor(new Date()); }, []);
 
-  const cursorYear = cursor.getFullYear();
-  const cursorMonth = cursor.getMonth();
-  const syncRange = `${cursorYear}-${cursorMonth}`;
-  React.useEffect(() => {
-    const from = new Date(cursorYear, cursorMonth, 1).toISOString().slice(0, 10);
-    const to = new Date(cursorYear, cursorMonth + 1, 0).toISOString().slice(0, 10);
-    if (filters.from !== from || filters.to !== to) { filters.update({ from, to }); }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [syncRange, filters.from, filters.to]);
+  // Decoupled from MovementFilters; calendar date changes now isolated locally
 
   function submitAdd(e: React.FormEvent) {
     e.preventDefault();
@@ -182,9 +173,10 @@ export const CalendarView: React.FC = () => {
           {monthLabel}
           <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/30 dark:bg-indigo-500/25 border border-indigo-500/50 text-indigo-700 dark:text-indigo-200 shadow-sm">Calendario</span>
         </h2>
-        <div className="text-xs text-muted flex gap-3">
+        <div className="text-xs text-muted flex gap-3 items-center">
           <span>Entrate: <span className="text-success">€ {Array.from(buckets.values()).reduce((s, b) => s + b.in, 0).toFixed(2)}</span></span>
           <span>Uscite: <span className="text-danger">€ {Array.from(buckets.values()).reduce((s, b) => s + b.out, 0).toFixed(2)}</span></span>
+          <button type="button" onClick={() => setDensity(d => d === 'normal' ? 'compact' : 'normal')} className="glass-button glass-button--xs" aria-label="Toggle densità calendario">Densità: {density === 'normal' ? 'Normale' : 'Compatta'}</button>
         </div>
       </div>
       <div className="flex items-center gap-4 text-[10px] -mt-2">
@@ -197,9 +189,11 @@ export const CalendarView: React.FC = () => {
           <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-red-500/60 inline-block" /> Uscite</span>
         </div>
       </div>
-      <div className="grid grid-cols-7 gap-2 text-[11px] font-medium uppercase tracking-wide text-muted">{['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'].map(d => <div key={d} className="text-center">{d}</div>)}</div>
-      <div className="grid grid-cols-7 gap-2 flex-1">
-        {grid.map((d, i) => <DayCell key={d ? fmt(d) : `pad-${i}`} date={d} bucket={d ? buckets.get(fmt(d)) : undefined} onOpenDay={(day) => { setActiveDay(day); setViewMode('list'); }} fmt={fmt} />)}
+      <div className="cal-weekdays-sticky text-[11px] font-medium uppercase tracking-wide text-muted grid" style={{ gridTemplateColumns: 'repeat(7,minmax(0,1fr))' }} role="row">
+        {['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'].map(d => <div key={d} className="text-center" role="columnheader">{d}</div>)}
+      </div>
+      <div className={`cal-grid ${density === 'compact' ? 'cal-density-compact' : ''}`} role="grid" aria-label="Calendario mensile" aria-readonly="true">
+        {grid.map((d, i) => <DayCell key={d ? fmt(d) : `pad-${i}`} date={d} bucket={d ? buckets.get(fmt(d)) : undefined} onOpenDay={(day) => { setActiveDay(day); setViewMode('list'); }} fmt={fmt} density={density} />)}
       </div>
       <Confirm
         open={!!activeDay}
