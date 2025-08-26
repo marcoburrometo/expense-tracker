@@ -18,6 +18,21 @@ jobs:
           node-version: 24
           cache: 'npm'
 
+      # Diagnose current npm auth/registry state BEFORE we sanitize (to understand 401 source)
+      - name: Diagnose npm auth
+        run: |
+          echo "Node version: $(node -v)"
+          echo "npm version: $(npm -v)"
+          echo "Registry (raw): $(npm config get registry)"
+          echo "--- npm config ls -l (auth lines) ---"
+          npm config ls -l | grep -i auth || echo "(no auth lines)"
+          echo "--- npm config ls -l (registry lines) ---"
+          npm config ls -l | grep -i registry || true
+          echo "--- environment tokens (masked by Actions) ---"
+          env | grep -E 'NPM_TOKEN|NODE_AUTH_TOKEN|NPM_CONFIG_' || echo "(no token env vars)"
+          echo "--- user .npmrc ---"; if [ -f ~/.npmrc ]; then sed -n '1,120p' ~/.npmrc; else echo "(none)"; fi
+          echo "--- workspace .npmrc ---"; if [ -f .npmrc ]; then sed -n '1,120p' .npmrc; else echo "(none)"; fi
+
       # (Temporary / permanent) Sanitize environment to avoid unintended auth tokens causing 401 with public packages
       - name: Sanitize npm auth
         run: |
