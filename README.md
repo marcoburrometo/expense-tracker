@@ -1,182 +1,249 @@
 # JANET – Just ANother Expense Tracker
 
-> Glass UI budgeting & calendar intelligence with multi‑workspace Firebase sync.
+> Intelligent budgeting, recurring calendar, collaborative multi‑workspaces. Advanced glass UI built on Next.js.
 
-JANET ("Just ANother Expense Tracker") è un tracker di spese e budget con un'interfaccia glass raffinata, calendario avanzato (heat / istanze ricorrenti), multi‑workspace collaborativi e sincronizzazione cloud ottimizzata.
+JANET ("Just ANother Expense Tracker") is a modern expense & budget tracker focused on:
 
-## Stack
-
-* Next.js App Router (TS, React 19)
-* Tailwind CSS v4 + custom glass classes (`globals.css`)
-* Local state via Context/Reducer (`TrackerContext`) + `localStorage` persistence
-* Firebase (Google Auth + Firestore) for workspaces & state sync
-* No custom backend (client only)
-
-## Core Features
-
-* Movements: one‑off and recurring (weekly / monthly / yearly) with in‑period instance generation
-* Monthly budgets per category
-* Shared filters (direction, date range, category, search, projections)
-* Calendar with volume highlighting, synthetic instances, per‑day detail modal
-* Light/Dark theme + toggle / system detection
-* Quick Add FAB + reusable confirmation modals
-* Multi‑user workspaces with automatic provisioning and fast switching
-* Cloud sync (800ms debounce) + offline local fallback
-* Workspace invites (create + list) – acceptance handled in adapter for now
-* Audit log of key actions (workspace, tracker save, invites, membership)
-* Export / Import current JSON state
-
-## Getting Started
-
-```bash
-npm install
-npm run dev
-```
-
-Open <http://localhost:3000>
-
-## Firebase Configuration
-
-Create `.env.local` with:
-
-```dotenv
-NEXT_PUBLIC_FIREBASE_API_KEY=...
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=...
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...
-NEXT_PUBLIC_FIREBASE_APP_ID=...
-NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=...
-```
-
-Firestore security rules (draft – refine for production):
-
-```javascript
-rules_version = '2';
-service cloud.firestore {
-	match /databases/{db}/documents {
-		function isAuth() { return request.auth != null; }
-		function uid() { return request.auth.uid; }
-
-		match /workspaces/{wid} {
-			allow read, update: if isAuth() && uid() in resource.data.memberIds;
-			allow create: if isAuth();
-		}
-		match /workspaceTrackers/{wid} {
-			allow read, write: if isAuth(); // TODO: restrict by workspace membership
-		}
-		match /workspaceInvites/{iid} {
-			allow create: if isAuth();
-			allow read: if isAuth();
-			allow update: if isAuth();
-		}
-		match /workspaceAudit/{aid} {
-			allow create: if true; // client writes audit entries; tighten if needed
-			allow read: if isAuth();
-		}
-	}
-}
-```
-
-## Workspaces & Sync (Flow)
-
-1. Google login → list workspaces (if none: create personal)
-2. Select workspace → load tracker document and HYDRATE local state
-3. Edits (800ms debounce) → save `workspaceTrackers/{workspaceId}` + audit `tracker.save`
-4. Switch workspace → state replaced (no cross merge)
-5. Logout → local mode (only `localStorage`)
-
-## Firestore Data Shape
-
-* `workspaces/{id}`: { name, ownerId, memberIds[], createdAt, updatedAt }
-* `workspaceTrackers/{id}`: { tracker: TrackerState, updatedAt }
-* `workspaceInvites/{id}`: { workspaceId, email, invitedBy, status }
-* `workspaceAudit/{id}`: { workspaceId, actorId, action, payload, createdAt }
-
-## Import / Export
-
-* Export: downloads JSON (expenses, budgets, settings)
-* Import: replaces entire state (TODO: smart merge / confirmation)
-
-## Tracked Audit Actions
-
-`workspace.create`, `tracker.seed`, `tracker.save`, `workspace.addMember`, `invite.create`, `invite.accept`, `invite.decline`
-
-## Short Roadmap
-
-* Smart import merge (by id) + diff preview
-* Invite accept/decline from UI
-* Save conflict handling (version compare / soft lock)
-* Retry/backoff failed saves
-* Realtime audit log (onSnapshot) + filters
-* Roles (owner / editor / viewer) enforcement
-* Email invite sending (Cloud Functions)
-
-## NPM Scripts
-
-* `npm run dev` – development (Turbopack)
-* `npm run build` – production build
-* `npm start` – production start
-
-## Project Structure
-
-```text
-src/
-	app/ (Next pages / app router)
-	components/ (UI & calendar)
-	state/ (Contexts: Tracker, Workspace, Theme, Filters, Auth)
-	lib/ (firebaseClient, workspaceAdapter, localStorage)
-	domain/ (types & categories)
-```
-
-## Design Notes
-
-* Glass UI with neutral gradients controlled via CSS vars
-* Theme forced via `data-theme` + `prefers-color-scheme` fallback
-* No custom server calls: easy future migration to APIs / Functions
-
-### GlassPanel Variants
-
-Reusable component: `GlassPanel` (`src/components/GlassPanel.tsx`) for consistent glass surfaces. Variants map to utility class stacks defined in `globals.css`:
-
-Variant semantics:
-
-* `default` – baseline translucent panel (blur, soft border, ambient light). Use for generic containers.
-* `pure` – higher clarity (less tint) for primary content areas where underlying background color should subtly influence but not overpower.
-* `subtle` – slightly more matte / lower elevation for nested or list items inside a primary panel.
-* `flat` – removes extra shadow depth; pair with `pure` for navigation bars → use composite `flat-pure`.
-* `flat-pure` – explicit composite of `flat` + `pure` (navbar / horizontal chrome) to avoid manual multi‑class repetition.
-* `frosted` – stronger diffusion (heavier backdrop blur) for modal surfaces needing separation while retaining context.
-* `elevated` – adds a more pronounced shadow / layered look for focus blocks (hero metrics, spotlight cards).
-* `solid` – near‑opaque fallback (e.g. print, small chips where legibility is paramount) – minimal translucency.
-
-Guidelines:
-
-* Prefer `pure` at layout breakpoints for main panels; inside them, use `subtle` for repeated rows / list items.
-* Keep nesting shallow: avoid more than two stacked glass surfaces to limit GPU blur cost.
-* Tooltip / ephemeral UI: hand‑tune lightweight styles (do not always use `GlassPanel`) for performance + legibility.
-* If a combination of two variants is needed, first consider whether an explicit composite should be added (like `flat-pure`) instead of passing multiple class names around.
-* Use `noPadding` prop and manage spacing externally when composing complex flex/grid layouts.
-
-Example:
-
-```tsx
-<GlassPanel variant="pure" className="p-4">
-	<h2>Bilancio</h2>
-	<ul className="space-y-2">
-		{rows.map(r => (
-			<GlassPanel as="li" key={r.id} variant="subtle" className="p-2">
-				{r.label}
-			</GlassPanel>
-		))}
-	</ul>
-</GlassPanel>
-```
-
-## License
-
-Internal/demo project. Add a LICENSE if needed.
+* Speed (client‑only, debounced saves, local fallback)
+* Visual clarity (multi‑layer glass design, gradient brand text without extra background overlays)
+* Calendar intelligence (synthetic recurrences, heat density, per‑day details)
+* Collaboration (multiple workspaces with invites and audit trail)
 
 ---
 
-See roadmap or open an internal issue for improvements.
+## 🌐 Technology Stack
+
+| Layer               | Choice                             | Notes                                                                |
+| ------------------- | ---------------------------------- | -------------------------------------------------------------------- |
+| Framework           | Next.js 15 (App Router)            | React 19, edge‑friendly structure                                    |
+| Language            | TypeScript                         | Strict domain & state typing                                         |
+| UI                  | Tailwind v4 + custom CSS           | Tokens + glass utilities in `globals.css`                            |
+| Local state         | Context + Reducer                  | `TrackerContext`, `WorkspaceContext`, `MovementFiltersContext`, etc. |
+| Offline persistence | `localStorage`                     | Re‑hydrate if no login / offline fallback                            |
+| Auth / Sync         | Firebase (Google Auth + Firestore) | No custom backend yet                                                |
+| Charts              | (WIP / simple custom chart)        | Extensible toward external libs                                      |
+
+---
+
+## ✨ Core Features
+
+* One‑off and recurring movements (weekly / monthly / yearly) generated synthetically for the current window
+* Monthly budgets per category with progress summary
+* Shared filters (direction, date range, category, search, future projections)
+* Calendar with intensity highlighting, synthetic badges, per‑day detail panel
+* Light / Dark theme + toggle + system detection
+* Quick Add FAB + reusable confirmations
+* Multi‑workspace: automatic personal creation, fast switching, invites
+* Firestore sync with debounce (~800ms) + action audit log
+* Offline mode (continues using local state while saves retry)
+* Export / Import full JSON state (movements, budgets, config)
+* Basic security (draft Firestore rules needing hardening)
+
+---
+
+## 🧱 Architecture & Structure
+
+```
+src/
+  app/                # Layout & pages (App Router)
+  components/         # Atomic + composite UI (Calendar, Tables, Forms, Stat Cards)
+  domain/             # Domain types, categories, constants
+  lib/                # Firebase adapter, local storage helpers, workspace adapter
+  state/              # Context + Providers (Auth, Tracker, Workspace, Theme, Filters)
+```
+
+Principles:
+
+* Domain tracker state isolated in a single serializable reducer
+* Thin Firestore adapter (`workspaceAdapter`) translating remote doc <-> `TrackerState`
+* No side‑effects inside presentation components (delegated to contexts / adapters)
+* CSS tokens + utilities: all glass surfaces centralized in `globals.css` for consistency & performance
+
+---
+
+## 🗃️ Firestore Data Model (current)
+
+| Collection               | Schema (key: type)                               | Notes                                 |
+| ------------------------ | ------------------------------------------------ | ------------------------------------- |
+| `workspaces/{id}`        | name, ownerId, memberIds[], createdAt, updatedAt | Simple membership (array)             |
+| `workspaceTrackers/{id}` | tracker: TrackerState, updatedAt                 | Single state doc per workspace        |
+| `workspaceInvites/{id}`  | workspaceId, email, invitedBy, status            | Status: pending / accepted / declined |
+| `workspaceAudit/{id}`    | workspaceId, actorId, action, payload, createdAt | Append‑only log                       |
+
+Tracked audit actions: `workspace.create`, `tracker.seed`, `tracker.save`, `workspace.addMember`, `invite.create`, `invite.accept`, `invite.decline`
+
+---
+
+## 🔄 Sync & Workspace Flow
+
+1. Google login → fetch workspace list (if empty: create personal)
+2. Select workspace → load tracker document → HYDRATE local state
+3. Mutations (debounced) → push document + append audit `tracker.save`
+4. Switch workspace → replace entire state (no cross merge)
+5. Logout → local mode (browser persistence only)
+
+Fallback: if save fails retain pending state and retry (TODO advanced retry/backoff).
+
+---
+
+## 🧪 State & Persistence
+
+Key contexts:
+
+* `TrackerContext` – movements, recurrences, budgets
+* `WorkspaceContext` – current workspace, list, switching
+* `AuthContext` – Firebase user + login/logout
+* `MovementFiltersContext` – shared filters & UI binding
+* `ThemeContext` – current theme + toggle (persisted via `localStorage`)
+
+Serialization: full `TrackerState` is JSON‑safe; export/import operates on this block.
+
+---
+
+## 🎨 Design System (Glass)
+
+All glass styling defined via CSS custom properties & utilities in `globals.css`:
+
+* Surface layers (`--surface-1..3`) with light/dark alpha shifts
+* Blur & saturation controlled by `--surface-backdrop-blur` / `--surface-saturate`
+* Panel variants: `default`, `subtle`, `solid`, `frosted`, `elevated`, `flat`, `pure`, composite `flat-pure`
+* Brand text `.glass-text-brand`: single linear gradient only (background highlight/gloss removed)
+* Reduced transparency via `prefers-reduced-transparency`
+
+Performance guidelines:
+
+* Avoid more than two nested blur layers
+* Tooltips / ephemeral overlays: prefer lightweight styles (skip blur if not essential)
+
+---
+
+## 🛡️ Firestore Rules (draft)
+
+```js
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{db}/documents {
+    function isAuth() { return request.auth != null; }
+    function uid() { return request.auth.uid; }
+
+    match /workspaces/{wid} {
+      allow read, update: if isAuth() && uid() in resource.data.memberIds;
+      allow create: if isAuth();
+    }
+    match /workspaceTrackers/{wid} {
+      allow read, write: if isAuth(); // TODO harden membership check
+    }
+    match /workspaceInvites/{iid} {
+      allow create, read, update: if isAuth();
+    }
+    match /workspaceAudit/{aid} {
+      allow create: if true; // TODO restrict to isAuth & membership
+      allow read: if isAuth();
+    }
+  }
+}
+```
+
+Security TODO:
+
+* Enforce membership also on `workspaceTrackers`, `workspaceInvites`, `workspaceAudit`
+* Restrict `invite.create` to owner / editor
+* Server time validations (`request.time`) & field schema constraints
+
+---
+
+## ⚙️ Local Setup
+
+1. Clone repo
+2. `npm install`
+3. Create `.env.local` with your Firebase keys:
+
+```dotenv
+NEXT_PUBLIC_FIREBASE_API_KEY=... 
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=... 
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=... 
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=... 
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=... 
+NEXT_PUBLIC_FIREBASE_APP_ID=... 
+NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=...
+```
+
+4. `npm run dev`
+5. Open http://localhost:3000
+
+Production build: `npm run build` then `npm start`.
+
+Deploy (Firebase Hosting): simplified script `npm run deploy` (validate hardened rules first).
+
+---
+
+## 🧰 NPM Scripts
+
+| Script   | Description                           |
+| -------- | ------------------------------------- |
+| `dev`    | Development (Turbopack)               |
+| `build`  | Production build                      |
+| `start`  | Run production server                 |
+| `lint`   | Run ESLint                            |
+| `deploy` | Build + Firebase deploy (placeholder) |
+
+---
+
+## 📤 Import / Export
+
+* Export: downloads full JSON (budgets, movements, settings)
+* Import: replaces entire state (ROADMAP: guided merge + diff preview)
+
+Anticipated edge cases:
+
+* Import with missing categories → auto add
+* Duplicate IDs → overwrite (improve with versioning)
+
+---
+
+## 🚀 Short Roadmap
+
+| Area        | Task                                                 |
+| ----------- | ---------------------------------------------------- |
+| Sync        | Retry/backoff + version conflict handling            |
+| Security    | Harden Firestore rules + roles (owner/editor/viewer) |
+| Invites     | UI accept/decline + email sending (Cloud Function)   |
+| Import      | Intelligent ID merge + diff viewer                   |
+| Audit       | Realtime filterable feed                             |
+| UX          | Optional brand shimmer, reduced motion accessibility |
+| Performance | Movement list virtualization + lazy calendar weeks   |
+| Mobile      | Swipe gestures for quick movement actions            |
+
+Legend: near term ≈ upcoming iterations; update progressively.
+
+---
+
+## ♿ Accessibility
+
+* Custom focus ring via `--focus-ring` maintaining contrast
+* `prefers-reduced-transparency`: reduces blur / increases legibility
+* Keyboard nav: tables & calendar highlight focused row/day
+* Brand tooltip purely decorative → keep primary text semantic
+
+TODO: granular aria labels for icon buttons, live region save announcements.
+
+---
+
+## 🧩 Contribute / Extend
+
+1. Create a feature branch
+2. Keep glass style changes inside `globals.css` (avoid inline drift)
+3. Add types to `domain/types.ts` before using a new field in the reducer
+4. Update the README if you change architecture / flows
+
+Tip: for new UI patterns prefer composable components over variant proliferation.
+
+---
+
+## 📄 License
+
+Internal / demo project. Add a license before making it public.
+
+---
+
+Questions or ideas? Open an internal issue or append to the roadmap section.
