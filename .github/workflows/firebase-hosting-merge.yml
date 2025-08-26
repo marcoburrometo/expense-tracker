@@ -32,6 +32,9 @@ jobs:
           env | grep -E 'NPM_TOKEN|NODE_AUTH_TOKEN|NPM_CONFIG_' || echo "(no token env vars)"
           echo "--- user .npmrc ---"; if [ -f ~/.npmrc ]; then sed -n '1,120p' ~/.npmrc; else echo "(none)"; fi
           echo "--- workspace .npmrc ---"; if [ -f .npmrc ]; then sed -n '1,120p' .npmrc; else echo "(none)"; fi
+          echo "--- config files ---"
+          npm config get userconfig || true
+          npm config get globalconfig || true
 
       # (Temporary / permanent) Sanitize environment to avoid unintended auth tokens causing 401 with public packages
       - name: Sanitize npm auth
@@ -41,10 +44,25 @@ jobs:
           npm config set registry https://registry.npmjs.org/
           unset NODE_AUTH_TOKEN NPM_TOKEN || true
           echo "Registry after sanitize: $(npm config get registry)"
+          echo 'registry=https://registry.npmjs.org/' > ~/.npmrc
+          echo 'always-auth=false' >> ~/.npmrc
+          echo "Final ~/.npmrc:"; sed -n '1,120p' ~/.npmrc
 
       # Install dependencies (public only) after making sure no invalid token interferes
       - name: Install dependencies
-        run: npm ci
+        run: |
+          echo "Starting npm ci with http loglevel to capture 401 origin"
+          npm ci --loglevel=http 2>&1 | tee npm-install-http.log || INSTALL_EXIT=$?
+          EXIT_CODE=${INSTALL_EXIT:-0}
+          echo "----- Extract lines with 401/ERR/EPERM/EACCESS -----" || true
+          grep -iE ' 401 |ERR!' -n npm-install-http.log || true
+          exit ${EXIT_CODE}
+      - name: Upload npm log (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-http-log
+          path: npm-install-http.log
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
