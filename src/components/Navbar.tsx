@@ -6,7 +6,7 @@ import { useTheme } from '@/state/ThemeContext';
 import { useAuth } from '@/state/AuthContext';
 import { useWorkspace } from '@/state/WorkspaceContext';
 
-interface NavItem { href: string; label: string; match?: (path: string)=> boolean }
+interface NavItem { href: string; label: string; match?: (path: string) => boolean }
 
 const links: NavItem[] = [
   { href: '/', label: 'Movimenti', match: p => p === '/' },
@@ -25,10 +25,10 @@ export const Navbar: React.FC = () => {
   }
   const onCreateWorkspace = async () => {
     const name = prompt('Nome nuovo workspace');
-    if(name) await createNewWorkspace(name);
+    if (name) await createNewWorkspace(name);
   };
   return (
-  <div className="glass-panel px-5 py-3 flex items-center gap-6 text-sm">
+    <div className="glass-panel px-5 py-3 flex items-center gap-6 text-sm">
       {links.map(l => {
         const active = l.match ? l.match(pathname) : pathname === l.href;
         return (
@@ -43,10 +43,10 @@ export const Navbar: React.FC = () => {
         );
       })}
       <div className="ml-auto flex gap-3 items-center">
-  <button onClick={toggle} aria-label="Toggle tema" className="glass-button pressable" title={`Tema: ${effective}`}>
+        <button onClick={toggle} aria-label="Toggle tema" className="glass-button pressable" title={`Tema: ${effective}`}>
           {effective === 'dark' ? '🌙' : '☀️'}
         </button>
-  <select aria-label="Modalità tema" value={mode} onChange={e=>setMode(e.target.value as 'light'|'dark'|'system')} className="glass-input text-xs">
+        <select aria-label="Modalità tema" value={mode} onChange={e => setMode(e.target.value as 'light' | 'dark' | 'system')} className="glass-input text-xs">
           <option value="system">Sistema</option>
           <option value="light">Chiaro</option>
           <option value="dark">Scuro</option>
@@ -57,10 +57,16 @@ export const Navbar: React.FC = () => {
               <select
                 aria-label="Workspace"
                 value={activeWorkspaceId || ''}
-                onChange={e=> switchWorkspace(e.target.value)}
-                className="glass-input text-xs max-w-[140px]"
+                onChange={e => switchWorkspace(e.target.value)}
+                className="glass-input text-xs max-w-[190px]"
+                title="Seleziona workspace (suffix ' (esterno)' = non di tua proprietà)"
               >
-                {workspaces.map(w => <option value={w.id} key={w.id}>{w.name}</option>)}
+                {workspaces.map(w => {
+                  const external = user && w.ownerId !== user.uid;
+                  // External workspace: show explicit Italian suffix for clarity
+                  const label = external ? `${w.name} (esterno)` : w.name;
+                  return <option value={w.id} key={w.id}>{label}</option>;
+                })}
               </select>
             )}
             <button onClick={onCreateWorkspace} className="glass-button glass-button--sm" aria-label="Nuovo workspace">＋WS</button>
@@ -69,7 +75,7 @@ export const Navbar: React.FC = () => {
             <button onClick={logout} disabled={loading} className="glass-button glass-button--sm" aria-label="Logout">Logout</button>
           </>
         ) : (
-          <button onClick={signInWithGoogle} disabled={loading} className="glass-button glass-button--primary glass-button--sm" aria-label="Login Google">{loading? '...' : 'Login'}</button>
+          <button onClick={signInWithGoogle} disabled={loading} className="glass-button glass-button--primary glass-button--sm" aria-label="Login Google">{loading ? '...' : 'Login'}</button>
         )}
       </div>
     </div>

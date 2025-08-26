@@ -72,6 +72,8 @@ export interface WorkspaceInvite {
   status: 'pending' | 'accepted' | 'declined' | 'expired';
   createdAt: string;
   updatedAt: string;
+  token?: string; // invitation token (opaque, single-use)
+  expiresAt?: string; // ISO datetime for expiry
 }
 
 // Remote tracker state wrapper stored per workspace document (Firestorm serialized shape)

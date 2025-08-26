@@ -34,6 +34,16 @@ export async function createWorkspace(uid: string, name: string): Promise<Worksp
   return { id: ref.id, name, ownerId: uid, memberIds: [uid], createdAt: now, updatedAt: now };
 }
 
+// Fetch a single workspace by id (utility for displaying invite target names)
+export async function getWorkspace(workspaceId: string): Promise<Workspace | null> {
+  if(!workspaceId) return null;
+  const ref = doc(db(), WS_COLLECTION, workspaceId);
+  const snap = await getDoc(ref);
+  if(!snap.exists()) return null;
+  const data = snap.data() as Omit<Workspace, 'id'>;
+  return { id: workspaceId, ...data };
+}
+
 export async function ensurePersonalWorkspace(uid: string): Promise<Workspace> {
   const existing = await listUserWorkspaces(uid);
   if (existing.length) return existing[0];
@@ -77,14 +87,79 @@ export async function addWorkspaceMember(workspaceId: string, uid: string) {
 export async function createWorkspaceInvite(workspaceId: string, email: string, invitedBy: string): Promise<WorkspaceInvite> {
   const col = collection(db(), WS_INVITES_COLLECTION);
   const now = new Date().toISOString();
-  const ref = await addDoc(col, { workspaceId, email: email.toLowerCase(), invitedBy, status: 'pending', createdAt: now, updatedAt: now });
-  log(workspaceId, invitedBy, 'invite.create', { email: email.toLowerCase() });
-  return { id: ref.id, workspaceId, email: email.toLowerCase(), invitedBy, status: 'pending', createdAt: now, updatedAt: now };
+  const token = cryptoRandomToken();
+  const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7).toISOString(); // 7 days
+  const lowerEmail = email.toLowerCase();
+  // Check for existing pending invite for same email+workspace
+  const existingQ = query(col, where('workspaceId','==', workspaceId), where('email','==', lowerEmail), where('status','==','pending'));
+  const existingSnap = await getDocs(existingQ);
+  if(!existingSnap.empty) {
+    const d = existingSnap.docs[0];
+    const data = d.data() as {
+      workspaceId: string; email: string; invitedBy: string; status: WorkspaceInvite['status']; createdAt: string; updatedAt: string; token?: string; expiresAt?: string
+    };
+    return {
+      id: d.id,
+      workspaceId: data.workspaceId,
+      email: data.email,
+      invitedBy: data.invitedBy,
+      status: data.status,
+      createdAt: data.createdAt,
+      updatedAt: data.updatedAt,
+      token: data.token,
+      expiresAt: data.expiresAt
+    };
+  }
+  const ref = await addDoc(col, { workspaceId, email: lowerEmail, invitedBy, status: 'pending', createdAt: now, updatedAt: now, token, expiresAt });
+  log(workspaceId, invitedBy, 'invite.create', { email: lowerEmail });
+  return { id: ref.id, workspaceId, email: lowerEmail, invitedBy, status: 'pending', createdAt: now, updatedAt: now, token, expiresAt };
+}
+
+function cryptoRandomToken(): string {
+  // Prefer crypto.randomUUID if available
+  const c = (globalThis as unknown as { crypto?: { randomUUID?: () => string; getRandomValues?: (arr: Uint8Array)=>void } }).crypto;
+  if (c?.randomUUID) {
+    return c.randomUUID().replace(/-/g,'');
+  }
+  if (c?.getRandomValues) {
+    const arr = new Uint8Array(16);
+    c.getRandomValues(arr);
+    return Array.from(arr).map(b => b.toString(16).padStart(2,'0')).join('');
+  }
+  return Math.random().toString(36).slice(2, 18);
+}
+
+export async function getInviteByToken(token: string): Promise<WorkspaceInvite | null> {
+  const qRef = query(collection(db(), WS_INVITES_COLLECTION), where('token','==', token));
+  const snap = await getDocs(qRef);
+  if(snap.empty) return null;
+  const d = snap.docs[0];
+  return { id: d.id, ...(d.data() as Omit<WorkspaceInvite,'id'>) };
+}
+
+export async function acceptInviteByToken(token: string, currentUid: string, currentEmail: string) {
+  const invite = await getInviteByToken(token);
+  if(!invite) throw new Error('Invite invalid');
+  if(invite.status !== 'pending') return;
+  if(invite.expiresAt && new Date(invite.expiresAt).getTime() < Date.now()) {
+    await setDoc(doc(db(), WS_INVITES_COLLECTION, invite.id), { ...invite, status: 'expired', updatedAt: new Date().toISOString() }, { merge: true });
+    throw new Error('Invite expired');
+  }
+  // ensure email matches
+  if(invite.email !== currentEmail.toLowerCase()) throw new Error('Email mismatch');
+  await acceptInvite(invite.id, currentUid);
 }
 
 export async function listWorkspaceInvites(workspaceId: string): Promise<WorkspaceInvite[]> {
   const q = query(collection(db(), WS_INVITES_COLLECTION), where('workspaceId','==', workspaceId));
   const snap = await getDocs(q);
+  return snap.docs.map(d => ({ id: d.id, ...(d.data() as Omit<WorkspaceInvite,'id'>) }));
+}
+
+export async function listUserIncomingInvites(email: string): Promise<WorkspaceInvite[]> {
+  const lower = email.toLowerCase();
+  const qRef = query(collection(db(), WS_INVITES_COLLECTION), where('email','==', lower), where('status','==','pending'));
+  const snap = await getDocs(qRef);
   return snap.docs.map(d => ({ id: d.id, ...(d.data() as Omit<WorkspaceInvite,'id'>) }));
 }
 
