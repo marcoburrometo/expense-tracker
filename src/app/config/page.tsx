@@ -1,9 +1,83 @@
+"use client";
 import { ExpenseForm } from '@/components/ExpenseForm';
 import { ExpenseList } from '@/components/ExpenseList';
 import { BudgetForm } from '@/components/BudgetForm';
 import { BudgetSummary } from '@/components/BudgetSummary';
+import { useTracker } from '@/state/TrackerContext';
+import { INITIAL_STATE, TrackerState } from '@/domain/types';
+import { useWorkspace } from '@/state/WorkspaceContext';
+import { useAuth } from '@/state/AuthContext';
+import { createWorkspaceInvite, listWorkspaceInvites, listAuditEntries } from '@/lib/workspaceAdapter';
+import React from 'react';
 
 export default function Config() {
+  const { expenses, budgets, settings, dispatch } = useTracker();
+  const { activeWorkspaceId, activeWorkspace, cloudSyncEnabled } = useWorkspace();
+  const { user } = useAuth();
+  const [invites, setInvites] = React.useState<ReturnType<typeof Object.assign>[]>([]); // simple generic object placeholder
+  interface AuditEntryLike { id: string; action: string; createdAt: string }
+  const [audit, setAudit] = React.useState<AuditEntryLike[]>([]);
+  React.useEffect(()=> {
+    let cancelled = false;
+    (async ()=> {
+      if(activeWorkspaceId) {
+        try {
+          const data = await listWorkspaceInvites(activeWorkspaceId);
+          if(!cancelled) setInvites(data);
+          const auditData = await listAuditEntries(activeWorkspaceId, 30);
+          if(!cancelled) setAudit(auditData);
+        } catch {/* ignore */ }
+      } else {
+        setInvites([]);
+        setAudit([]);
+      }
+    })();
+    return ()=> { cancelled = true; };
+  }, [activeWorkspaceId]);
+
+  const onExport = () => {
+    const blob = new Blob([JSON.stringify({ expenses, budgets, settings }, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `tracker-export-${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+  };
+  const onImport: React.ChangeEventHandler<HTMLInputElement> = (e) => {
+    const file = e.target.files?.[0];
+    if(!file) return;
+    file.text().then(text => {
+      try {
+        const json = JSON.parse(text);
+        if(json?.expenses && json?.budgets && json?.settings) {
+          const merged: TrackerState = {
+            ...INITIAL_STATE,
+            expenses: json.expenses,
+            budgets: json.budgets,
+            settings: { ...INITIAL_STATE.settings, ...json.settings },
+            version: INITIAL_STATE.version,
+          };
+          dispatch({ type: 'HYDRATE_STATE', payload: merged });
+          alert('Import completato');
+        } else {
+          alert('Formato non valido');
+        }
+      } catch {
+        alert('JSON invalido');
+      }
+    }).catch(()=> alert('Lettura file fallita'));
+  };
+  const inviteEmailRef = React.useRef<HTMLInputElement|null>(null);
+  const createInvite = async () => {
+    if(!inviteEmailRef.current || !user || !activeWorkspaceId) return;
+    const email = inviteEmailRef.current.value.trim();
+    if(!email) return;
+    try {
+      await createWorkspaceInvite(activeWorkspaceId, email, user.uid);
+      inviteEmailRef.current.value='';
+      const data = await listWorkspaceInvites(activeWorkspaceId);
+      setInvites(data);
+    } catch { alert('Errore invito'); }
+  };
   return (
     <main className="mx-auto max-w-7xl p-6 md:p-10 space-y-8">
       <header className="space-y-2 fade-in">
@@ -27,6 +101,46 @@ export default function Config() {
         <div className="col-span-1 md:col-span-1 lg:col-span-2">
           <div className="glass-panel p-4 fade-in" style={{ animationDelay: '.1s' }}>
             <ExpenseList />
+          </div>
+          <div className="glass-panel p-4 mt-6 fade-in" style={{ animationDelay: '.15s' }}>
+            <h2 className="font-semibold mb-2 text-sm">Workspace & Sync</h2>
+            <div className="text-[12px] mb-4 space-y-1">
+              <div><strong>Workspace:</strong> {activeWorkspace?.name || '—'} {cloudSyncEnabled ? '(cloud sync attivo)' : '(solo locale)'}</div>
+              <div><strong>ID:</strong> {activeWorkspaceId || '—'}</div>
+            </div>
+            <div className="flex gap-2 items-center mb-4 flex-wrap text-[12px]">
+              <button onClick={onExport} className="glass-button glass-button--sm">Export JSON</button>
+              <label className="glass-button glass-button--sm cursor-pointer inline-flex items-center gap-1">
+                <span>Import JSON</span>
+                <input type="file" accept="application/json" onChange={onImport} className="hidden" />
+              </label>
+            </div>
+            <div className="glass-divider" />
+            <h3 className="font-semibold mb-2 text-sm">Inviti</h3>
+            <div className="flex gap-2 mb-3">
+              <input ref={inviteEmailRef} type="email" placeholder="email" className="glass-input glass-input--sm flex-1" />
+              <button onClick={createInvite} className="glass-button glass-button--sm">Invita</button>
+            </div>
+            <ul className="space-y-1 text-[12px] max-h-40 overflow-auto glass-scroll pr-1">
+              {invites.map(inv => (
+                <li key={inv.id} className="flex justify-between items-center gap-2 py-1 border-b border-white/30 dark:border-white/10 last:border-none">
+                  <span className="truncate">{inv.email}</span>
+                  <span className="text-xs px-2 py-0.5 rounded bg-white/40 dark:bg-white/10">{inv.status}</span>
+                </li>
+              ))}
+              {!invites.length && <li className="opacity-60">Nessun invito</li>}
+            </ul>
+            <div className="glass-divider" />
+            <h3 className="font-semibold mb-2 text-sm">Audit Log (ultimi)</h3>
+            <ul className="space-y-1 text-[11px] max-h-40 overflow-auto glass-scroll pr-1">
+              {audit.map(entry => (
+                <li key={entry.id} className="flex justify-between gap-2 py-0.5 border-b border-white/30 dark:border-white/10 last:border-none">
+                  <span className="truncate">{entry.action}</span>
+                  <span className="opacity-60 font-mono">{new Date(entry.createdAt).toLocaleTimeString()}</span>
+                </li>
+              ))}
+              {!audit.length && <li className="opacity-60">Nessun log</li>}
+            </ul>
           </div>
         </div>
       </section>

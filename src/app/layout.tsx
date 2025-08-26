@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
         import { MovementFiltersProvider } from '@/state/MovementFiltersContext';
 import { TrackerProvider } from '@/state/TrackerContext';
+import { AuthProvider } from '@/state/AuthContext';
+import { WorkspaceProvider } from '@/state/WorkspaceContext';
 import { Navbar } from '@/components/Navbar';
 import { QuickAdd } from '@/components/QuickAdd';
 import { ThemeProvider } from '@/state/ThemeContext';
@@ -32,8 +34,10 @@ export default function RootLayout({
           <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-gradient-to-br from-slate-100 to-slate-200 dark:from-neutral-900 dark:to-neutral-950 text-neutral-900 dark:text-neutral-50`}>
             <div className="app-shell">
               <ThemeProvider>
-                <MovementFiltersProvider>
+                <AuthProvider>
                 <TrackerProvider>
+                <WorkspaceProvider>
+                <MovementFiltersProvider>
                   <div className="sticky top-0 z-20 px-4 pt-4">
                     <Navbar />
                   </div>
@@ -41,8 +45,10 @@ export default function RootLayout({
                     {children}
                   </div>
                   <QuickAdd />
-                </TrackerProvider>
                 </MovementFiltersProvider>
+                </WorkspaceProvider>
+                </TrackerProvider>
+                </AuthProvider>
               </ThemeProvider>
             </div>
           </body>

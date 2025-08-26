@@ -53,6 +53,52 @@ export interface TrackerState {
   version: number; // for future migrations
 }
 
+// Multi-tenant workspace domain (cloud only)
+export interface Workspace {
+  id: string;
+  name: string;
+  ownerId: string; // uid of owner
+  memberIds: string[]; // includes ownerId for convenience
+  createdAt: string; // ISO
+  updatedAt: string; // ISO
+  // future: plan/tier, archived flag, etc.
+}
+
+export interface WorkspaceInvite {
+  id: string;
+  workspaceId: string;
+  email: string; // invited email
+  invitedBy: string; // uid
+  status: 'pending' | 'accepted' | 'declined' | 'expired';
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Remote tracker state wrapper stored per workspace document (Firestorm serialized shape)
+export interface WorkspaceTrackerDocument {
+  workspaceId: string;
+  tracker: TrackerState; // same shape as local; migrations must keep parity
+  updatedAt: string;
+}
+
+// Lightweight audit entry
+export interface AuditEntry {
+  id: string;
+  workspaceId: string;
+  actorId: string;
+  action: string; // e.g. expense.add, budget.update
+  payload?: Record<string, unknown>;
+  createdAt: string;
+}
+
+export interface SyncStatusMeta {
+  lastPullAt?: string;
+  lastPushAt?: string;
+  lastError?: string;
+  pendingLocalChanges?: boolean;
+  conflict?: boolean;
+}
+
 export const INITIAL_STATE: TrackerState = {
   expenses: [],
   budgets: [],

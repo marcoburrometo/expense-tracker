@@ -32,7 +32,8 @@ type Action =
   | { type: 'UPDATE_BUDGET'; payload: { id: string; data: Partial<{ category: string; limit: number }> } }
   | { type: 'DELETE_EXPENSE'; payload: { id: string } }
   | { type: 'DELETE_BUDGET'; payload: { id: string } }
-  | { type: 'GENERATE_CURRENT_PERIOD_INSTANCES'; now: Date };
+  | { type: 'GENERATE_CURRENT_PERIOD_INSTANCES'; now: Date }
+  | { type: 'HYDRATE_STATE'; payload: TrackerState };
 
 const STORAGE_KEY = 'tracker-state-v1';
 
@@ -216,6 +217,11 @@ const handlers: HandlerMap = {
     const generated = computeGeneratedInstances(state, action.now);
     if (!generated.length) return state;
     return { ...state, expenses: [...generated, ...state.expenses] };
+  },
+  HYDRATE_STATE: (_state, action) => {
+    if (action.type !== 'HYDRATE_STATE') return _state;
+    // run migrate just in case
+    return migrate({ ...action.payload });
   },
 };
 
