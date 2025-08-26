@@ -1,8 +1,13 @@
 @import "tailwindcss";
 
-/* Dark mode variant: apply when ancestor <html> (or any ancestor) has .dark or data-theme=dark */
-@custom-variant dark (.dark &, [data-theme=dark] &);
+/* Dark mode handled via html.dark class (tailwind.config.js) and [data-theme] attributes (DO NOT TOUCH!) */
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
+html, body { height:100%; }
+body { min-height:100vh; }
+/* Ensure root layout can stretch edge-to-edge */
+.app-shell { min-height:100vh; width:100%; display:flex; flex-direction:column; }
+.app-main { flex:1 1 auto; width:100%; }
 
 :root {
   --background: #ffffff;
@@ -335,3 +340,15 @@ html[data-contrast='high'] .skeleton { animation: none; }
 
 /* Muted text utility (token-based) */
 .text-muted { color: var(--text-muted) !important; }
+
+/* Modal + overlay */
+.modal-overlay { position: fixed; inset:0; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.85), rgba(148,163,184,0.55)) , rgba(15,23,42,0.55); backdrop-filter: blur(10px) saturate(140%); -webkit-backdrop-filter: blur(10px) saturate(140%); display:flex; align-items:center; justify-content:center; padding:2rem; z-index:70; animation: fade-in .25s ease; }
+.dark .modal-overlay, html[data-theme='dark'] .modal-overlay { background: radial-gradient(circle at 50% 40%, rgba(30,41,59,0.75), rgba(15,23,42,0.85)) , rgba(0,0,0,0.55); }
+.modal-panel { width:100%; max-width:460px; }
+.modal-enter { animation: modal-pop .35s cubic-bezier(.4,0,.2,1); }
+@keyframes modal-pop { from { opacity:0; transform: translateY(8px) scale(.96); } to { opacity:1; transform: translateY(0) scale(1); } }
+
+/* Floating action button */
+.glass-fab { position:fixed; bottom:1.5rem; right:1.5rem; z-index:60; }
+.glass-fab .glass-button { padding:.9rem 1rem; border-radius: 999px; font-size:1.1rem; box-shadow:0 6px 18px -4px rgba(0,0,0,.25), 0 2px 6px -2px rgba(0,0,0,.18); }
+.glass-fab .glass-button:focus-visible { outline:3px solid var(--focus-ring); outline-offset:3px; }

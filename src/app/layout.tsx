@@ -4,6 +4,7 @@ import "./globals.css";
         import { MovementFiltersProvider } from '@/state/MovementFiltersContext';
 import { TrackerProvider } from '@/state/TrackerContext';
 import { Navbar } from '@/components/Navbar';
+import { QuickAdd } from '@/components/QuickAdd';
 import { ThemeProvider } from '@/state/ThemeContext';
 
 const geistSans = Geist({
@@ -29,16 +30,21 @@ export default function RootLayout({
   return (
     <html lang="en">
           <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-gradient-to-br from-slate-100 to-slate-200 dark:from-neutral-900 dark:to-neutral-950 text-neutral-900 dark:text-neutral-50`}>
-            <ThemeProvider>
-              <MovementFiltersProvider>
-              <TrackerProvider>
-                <div className="sticky top-0 z-20 px-4 pt-4">
-                  <Navbar />
-                </div>
-                {children}
-              </TrackerProvider>
-              </MovementFiltersProvider>
-            </ThemeProvider>
+            <div className="app-shell">
+              <ThemeProvider>
+                <MovementFiltersProvider>
+                <TrackerProvider>
+                  <div className="sticky top-0 z-20 px-4 pt-4">
+                    <Navbar />
+                  </div>
+                  <div className="app-main">
+                    {children}
+                  </div>
+                  <QuickAdd />
+                </TrackerProvider>
+                </MovementFiltersProvider>
+              </ThemeProvider>
+            </div>
           </body>
     </html>
   );

@@ -1,5 +1,6 @@
 "use client";
 import React, { useMemo, useState } from 'react';
+import { Confirm } from '@/components/Confirm';
 import { useTracker } from '@/state/TrackerContext';
 import { mergeCategories } from '@/domain/categories';
 import { isTemplate, isRecurringInstance, AnyExpense } from '@/domain/types';
@@ -43,7 +44,19 @@ export const ExpenseList: React.FC = () => {
     });
   }, [expenses, filter]);
 
+  const deleteTarget = confirmDeleteId ? expenses.find(e=> e.id===confirmDeleteId) : null;
+  const confirmDescription = deleteTarget ? <>Confermi l&apos;eliminazione della spesa selezionata? Questa azione è irreversibile.</> : null;
+  const confirmDetails = deleteTarget ? (
+    <>
+      <div><span className="opacity-70">Descrizione:</span> {deleteTarget.description}</div>
+      <div><span className="opacity-70">Categoria:</span> {deleteTarget.category}</div>
+      <div><span className="opacity-70">Importo:</span> {deleteTarget.direction==='in'?'+':'-'}€ {deleteTarget.amount.toFixed(2)}</div>
+      <div><span className="opacity-70">Data:</span> {deleteTarget.type!=='recurring-template'? deleteTarget.date.slice(0,10): deleteTarget.startDate.slice(0,10)}</div>
+    </>
+  ) : null;
+
   return (
+  <>
   <div className="glass-panel p-5 w-full space-y-3 fade-in">
       <div className="flex items-center justify-between mb-2">
         <h2 className="font-semibold text-lg">Spese</h2>
@@ -73,18 +86,8 @@ export const ExpenseList: React.FC = () => {
                   <div className="text-right min-w-[110px]">
                     <div className={`font-mono ${e.direction==='in'?'text-green-600':'text-red-600'}`}>{e.direction==='in'?'+':'-'}€ {e.amount.toFixed(2)}</div>
                     <div className="flex gap-2 justify-end mt-1">
-                      {confirmDeleteId === e.id ? (
-                        <>
-                          <span className="text-[10px] self-center font-medium text-red-600">Confermi?</span>
-                          <button onClick={()=>{ deleteExpense(e.id); setConfirmDeleteId(null); }} className="glass-button glass-button--danger text-[10px]">Elimina</button>
-                          <button onClick={()=>setConfirmDeleteId(null)} className="glass-button text-[10px]">Annulla</button>
-                        </>
-                      ) : (
-                        <>
-                          <button onClick={()=>startEdit(e)} className="glass-button glass-button--primary text-[10px] pressable">Modifica</button>
-                          <button onClick={()=>setConfirmDeleteId(e.id)} className="glass-button glass-button--danger text-[10px] pressable" aria-label="Elimina">X</button>
-                        </>
-                      )}
+                      <button onClick={()=>startEdit(e)} className="glass-button glass-button--primary text-[10px] pressable">Modifica</button>
+                      <button onClick={()=>setConfirmDeleteId(e.id)} className="glass-button glass-button--danger text-[10px] pressable" aria-label="Elimina">X</button>
                     </div>
                   </div>
                 </div>
@@ -120,6 +123,17 @@ export const ExpenseList: React.FC = () => {
           </div>
         </li>}
       </ul>
-    </div>
+  </div>
+    <Confirm
+      open={!!deleteTarget}
+      title="Elimina spesa"
+      description={confirmDescription}
+      details={confirmDetails}
+      confirmLabel="Elimina"
+      variant="danger"
+      onCancel={()=> setConfirmDeleteId(null)}
+  onConfirm={()=> { if(deleteTarget){ deleteExpense(deleteTarget.id); } setConfirmDeleteId(null); }}
+    />
+  </>
   );
 };

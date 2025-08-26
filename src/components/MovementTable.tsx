@@ -1,5 +1,6 @@
 "use client";
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback, useState } from 'react';
+import { Confirm } from '@/components/Confirm';
 import { useTracker } from '@/state/TrackerContext';
 import { AnyExpense, RecurringExpenseTemplate, GeneratedRecurringExpenseInstance, isTemplate } from '@/domain/types';
 import { useMovementFilters } from '@/state/MovementFiltersContext';
@@ -14,7 +15,9 @@ function formatCSV(rows: Row[]): string {
 }
 
 export const MovementTable: React.FC = () => {
-  const { expenses } = useTracker();
+  const { expenses, deleteExpense } = useTracker();
+  const [deleteId, setDeleteId] = useState<string|null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
 
   // Shared filters from context
   const { from, to, q, dir, category, sortDesc, update, includeProj } = useMovementFilters();
@@ -144,8 +147,19 @@ export const MovementTable: React.FC = () => {
     URL.revokeObjectURL(url);
   }
 
+  const deleteTarget = deleteId ? rows.find(r=> r.id === deleteId) : null;
+  const confirmDescription = deleteTarget ? <>Confermi l&apos;eliminazione di <span className="font-medium">{deleteTarget.description}</span>? Questa azione è irreversibile.</> : null;
+  const confirmDetails = deleteTarget ? (
+    <>
+      <div><span className="opacity-70">Data:</span> {deleteTarget.date}</div>
+      <div><span className="opacity-70">Categoria:</span> {deleteTarget.category}</div>
+      <div><span className="opacity-70">Importo:</span> {deleteTarget.direction==='in'?'+':'-'}€ {deleteTarget.amount?.toFixed(2)}</div>
+      <div><span className="opacity-70">Saldo dopo:</span> € {deleteTarget.balance.toFixed(2)}</div>
+    </>
+  ) : null;
+
   return (
-    <div className="glass-panel flex flex-col">
+    <div className="flex flex-col h-full min-h-0">
       <div className="p-3 border-b border-white/40 dark:border-white/10 flex flex-wrap gap-3 items-end text-xs md:text-[13px]">
         <div className="flex flex-col">
           <label htmlFor="mov-from" className="uppercase tracking-wide text-[10px] font-semibold">Da</label>
@@ -185,7 +199,7 @@ export const MovementTable: React.FC = () => {
     <span className={`${totals.net>=0?'text-emerald-700 dark:text-emerald-400':'text-red-700 dark:text-red-400'}`}>Saldo Netto: € {totals.net.toFixed(2)}</span>
   {rows.length>0 && <span className="text-muted">Saldo Finale: € {rows[rows.length-1].balance.toFixed(2)}</span>}
       </div>
-      <div className="overflow-auto max-h-[480px] glass-scroll">
+  <div className="overflow-auto flex-1 min-h-0 glass-scroll">
         <table className="glass-table">
           <thead className="sticky top-0 bg-white/55 dark:bg-slate-800/45 backdrop-blur text-neutral-700 dark:text-neutral-200 shadow-sm">
             <tr>
@@ -195,6 +209,7 @@ export const MovementTable: React.FC = () => {
               <th className="px-2 py-1 text-right">Entrate</th>
               <th className="px-2 py-1 text-right">Uscite</th>
               <th className="px-2 py-1 text-right">Saldo</th>
+              <th className="px-2 py-1 text-right">Azioni</th>
             </tr>
           </thead>
           <tbody>
@@ -206,16 +221,35 @@ export const MovementTable: React.FC = () => {
                 <td className="px-2 py-1 text-right text-green-600 font-mono">{r.direction==='in'?`€ ${r.amount.toFixed(2)}`:''}</td>
                 <td className="px-2 py-1 text-right text-red-600 font-mono">{r.direction==='out'?`€ ${r.amount.toFixed(2)}`:''}</td>
                 <td className={`px-2 py-1 text-right font-mono ${r.balance>=0?'text-emerald-700':'text-red-700'}`}>€ {r.balance.toFixed(2)}</td>
+                <td className="px-2 py-1 text-right">
+                  {!r.projected ? (
+                    <button
+                      onClick={()=> { setDeleteId(r.id); setModalOpen(true); }}
+                      className="glass-button glass-button--danger glass-button--sm pressable"
+                      aria-label="Elimina movimento"
+                    >✕</button>
+                  ) : <span className="text-[10px] opacity-50">—</span>}
+                </td>
               </tr>
             ))}
             {!rows.length && (
               <tr>
-                <td colSpan={6} className="text-center px-2 py-6 text-neutral-500">Nessun movimento</td>
+                <td colSpan={7} className="text-center px-2 py-6 text-neutral-500">Nessun movimento</td>
               </tr>
             )}
           </tbody>
         </table>
       </div>
+      <Confirm
+        open={modalOpen && !!deleteTarget}
+        title="Elimina movimento"
+        description={confirmDescription}
+        details={confirmDetails}
+        confirmLabel="Elimina"
+        variant="danger"
+        onCancel={()=>{ setModalOpen(false); setDeleteId(null); }}
+        onConfirm={()=>{ if(deleteTarget){ deleteExpense(deleteTarget.id); } setModalOpen(false); setDeleteId(null); }}
+      />
     </div>
   );
 };

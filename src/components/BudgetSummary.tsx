@@ -1,5 +1,6 @@
 "use client";
 import React, { useMemo, useState } from 'react';
+import { Confirm } from '@/components/Confirm';
 import { useMonthlyTotals, useTracker } from '@/state/TrackerContext';
 import { mergeCategories } from '@/domain/categories';
 import { Budget } from '@/domain/types';
@@ -29,7 +30,16 @@ export const BudgetSummary: React.FC = () => {
       <div className="text-[11px] opacity-60">Nessun budget definito.</div>
     </div>
   </div>;
+  const deleteTarget = confirmDeleteId ? budgets.find(b=> b.id===confirmDeleteId) : null;
+  const confirmDetails = deleteTarget ? (
+    <>
+      <div><span className="opacity-70">Categoria:</span> {deleteTarget.category}</div>
+      <div><span className="opacity-70">Limite:</span> € {deleteTarget.limit.toFixed(2)}</div>
+      <div><span className="opacity-70">Speso mese:</span> € {(totals[deleteTarget.category]||0).toFixed(2)}</div>
+    </>
+  ) : null;
   return (
+  <>
   <div className="glass-panel p-5 w-full max-w-md space-y-2 fade-in">
       <h2 className="font-semibold text-lg mb-2">Budgets (Mese Corrente)</h2>
       <ul className="space-y-2 text-sm">
@@ -44,18 +54,8 @@ export const BudgetSummary: React.FC = () => {
                   <div className="flex justify-between items-center">
                     <span className="font-medium">{b.category}</span>
                     <div className="flex gap-2">
-                      {confirmDeleteId === b.id ? (
-                        <>
-                          <span className="text-[10px] self-center font-medium text-red-600">Confermi?</span>
-                          <button onClick={()=>{ deleteBudget(b.id); setConfirmDeleteId(null); }} className="glass-button glass-button--danger text-[10px]">Elimina</button>
-                          <button onClick={()=>setConfirmDeleteId(null)} className="glass-button text-[10px]">Annulla</button>
-                        </>
-                      ) : (
-                        <>
-                          <button onClick={()=>startEdit(b)} className="glass-button glass-button--primary text-[10px] pressable">Modifica</button>
-                          <button onClick={()=>setConfirmDeleteId(b.id)} className="glass-button glass-button--danger text-[10px] pressable">Elimina</button>
-                        </>
-                      )}
+                      <button onClick={()=>startEdit(b)} className="glass-button glass-button--primary text-[10px] pressable">Modifica</button>
+                      <button onClick={()=>setConfirmDeleteId(b.id)} className="glass-button glass-button--danger text-[10px] pressable">Elimina</button>
                     </div>
                   </div>
                   <div className="text-xs text-muted">€ {spent.toFixed(2)} / € {b.limit.toFixed(2)} {remaining>=0?`(restano € ${remaining.toFixed(2)})`:`(superato di € ${(Math.abs(remaining)).toFixed(2)})`}</div>
@@ -81,5 +81,16 @@ export const BudgetSummary: React.FC = () => {
         })}
       </ul>
     </div>
+    <Confirm
+      open={!!deleteTarget}
+      title="Elimina budget"
+      description={deleteTarget ? <>Confermi l&apos;eliminazione del budget selezionato? I progressi del mese andranno persi.</> : null}
+      details={confirmDetails}
+      confirmLabel="Elimina"
+      variant="danger"
+      onCancel={()=> setConfirmDeleteId(null)}
+  onConfirm={()=> { if(deleteTarget){ deleteBudget(deleteTarget.id); } setConfirmDeleteId(null); }}
+    />
+  </>
   );
 };
