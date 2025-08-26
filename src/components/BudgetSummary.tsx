@@ -1,12 +1,14 @@
 "use client";
 import React, { useState } from 'react';
 import { useMonthlyTotals, useTracker } from '@/state/TrackerContext';
+import { Budget } from '@/domain/types';
 
 export const BudgetSummary: React.FC = () => {
   const { budgets, deleteBudget, updateBudget } = useTracker();
   const [editingId, setEditingId] = useState<string|null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string|null>(null);
   const [form, setForm] = useState<{category:string; limit:string}>({category:'', limit:''});
-  function startEdit(b:any){
+  function startEdit(b: Budget){
     setEditingId(b.id);
     setForm({category: b.category, limit: String(b.limit)});
   }
@@ -17,9 +19,9 @@ export const BudgetSummary: React.FC = () => {
     setEditingId(null);
   }
   const totals = useMonthlyTotals();
-  if (!budgets.length) return <div className="p-4 border rounded-md bg-white/70 dark:bg-neutral-800/60 text-sm">Nessun budget definito.</div>;
+  if (!budgets.length) return <div className="glass-panel p-4 text-sm">Nessun budget definito.</div>;
   return (
-    <div className="p-4 border rounded-md bg-white/70 dark:bg-neutral-800/60 w-full max-w-md">
+    <div className="glass-panel p-5 w-full max-w-md space-y-2">
       <h2 className="font-semibold text-lg mb-2">Budgets (Mese Corrente)</h2>
       <ul className="space-y-2 text-sm">
         {budgets.map(b => {
@@ -27,14 +29,24 @@ export const BudgetSummary: React.FC = () => {
             const pct = b.limit ? Math.min(100, (spent / b.limit) * 100) : 0;
             const remaining = b.limit - spent;
           return (
-            <li key={b.id} className="border rounded p-2 bg-white/60 dark:bg-neutral-700/50">
+            <li key={b.id} className="glass-panel p-3 space-y-1">
               {editingId!==b.id && (
                 <>
                   <div className="flex justify-between items-center">
                     <span className="font-medium">{b.category}</span>
                     <div className="flex gap-2">
-                      <button onClick={()=>startEdit(b)} className="text-xs text-blue-600 hover:underline">Modifica</button>
-                      <button onClick={()=>deleteBudget(b.id)} className="text-xs text-red-600 hover:underline">Elimina</button>
+                      {confirmDeleteId === b.id ? (
+                        <>
+                          <span className="text-[10px] self-center font-medium text-red-600">Confermi?</span>
+                          <button onClick={()=>{ deleteBudget(b.id); setConfirmDeleteId(null); }} className="glass-button glass-button--danger text-[10px]">Elimina</button>
+                          <button onClick={()=>setConfirmDeleteId(null)} className="glass-button text-[10px]">Annulla</button>
+                        </>
+                      ) : (
+                        <>
+                          <button onClick={()=>startEdit(b)} className="glass-button glass-button--primary text-[10px]">Modifica</button>
+                          <button onClick={()=>setConfirmDeleteId(b.id)} className="glass-button glass-button--danger text-[10px]">Elimina</button>
+                        </>
+                      )}
                     </div>
                   </div>
                   <div className="text-xs text-neutral-600 dark:text-neutral-300">€ {spent.toFixed(2)} / € {b.limit.toFixed(2)} {remaining>=0?`(restano € ${remaining.toFixed(2)})`:`(superato di € ${(Math.abs(remaining)).toFixed(2)})`}</div>
@@ -45,11 +57,11 @@ export const BudgetSummary: React.FC = () => {
               )}
               {editingId===b.id && (
                 <form onSubmit={e=>{e.preventDefault(); submit(b.id);}} className="flex flex-col gap-2 text-xs">
-                  <input className="px-1 py-0.5 border rounded" value={form.category} onChange={e=>setForm(f=>({...f, category: e.target.value}))} />
-                  <input className="px-1 py-0.5 border rounded" type="number" step="0.01" value={form.limit} onChange={e=>setForm(f=>({...f, limit: e.target.value}))} />
+                  <input className="glass-input" value={form.category} onChange={e=>setForm(f=>({...f, category: e.target.value}))} />
+                  <input className="glass-input" type="number" step="0.01" value={form.limit} onChange={e=>setForm(f=>({...f, limit: e.target.value}))} />
                   <div className="flex gap-2 justify-end">
-                    <button type="button" onClick={()=>setEditingId(null)} className="px-2 py-0.5 border rounded">Annulla</button>
-                    <button type="submit" className="px-2 py-0.5 rounded bg-blue-600 text-white">Salva</button>
+                    <button type="button" onClick={()=>setEditingId(null)} className="glass-button">Annulla</button>
+                    <button type="submit" className="glass-button glass-button--success">Salva</button>
                   </div>
                 </form>
               )}

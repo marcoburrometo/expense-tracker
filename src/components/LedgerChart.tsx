@@ -155,7 +155,7 @@ export const LedgerChart: React.FC = () => {
   function onLeave(){ setHoverIdx(null); }
 
   return (
-    <div ref={ref} className="border rounded-md bg-white/70 dark:bg-neutral-800/50 p-3 space-y-3">
+  <div ref={ref} className="glass-panel p-4 space-y-3">
       <div className="flex flex-wrap gap-3 items-end text-xs">
         <label className="flex items-center gap-1 select-none cursor-pointer">
           <input type="checkbox" checked={includeProj} onChange={e=>update({ includeProj: e.target.checked })} />

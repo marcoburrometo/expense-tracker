@@ -16,17 +16,17 @@ export const BudgetForm: React.FC = () => {
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-2 p-4 border rounded-md bg-white/70 dark:bg-neutral-800/60 max-w-md w-full">
-      <h2 className="font-semibold text-lg">Nuovo Budget</h2>
-      <div className="grid grid-cols-2 gap-3">
+    <form onSubmit={onSubmit} className="space-y-3 glass-panel p-5 max-w-md w-full">
+      <h2 className="font-semibold text-lg tracking-tight">Nuovo Budget</h2>
+      <div className="grid grid-cols-2 gap-3 text-sm">
         <div className="col-span-1">
-          <input placeholder="Categoria" value={category} onChange={e=>setCategory(e.target.value)} className="w-full px-2 py-1 border rounded" />
+          <input placeholder="Categoria" value={category} onChange={e=>setCategory(e.target.value)} className="w-full glass-input" />
         </div>
         <div className="col-span-1">
-          <input type="number" step="0.01" placeholder="Limite Mensile" value={limit} onChange={e=>setLimit(e.target.value)} className="w-full px-2 py-1 border rounded" required />
+          <input type="number" step="0.01" placeholder="Limite Mensile" value={limit} onChange={e=>setLimit(e.target.value)} className="w-full glass-input" required />
         </div>
       </div>
-      <button type="submit" className="px-3 py-1 rounded bg-indigo-600 text-white text-sm hover:bg-indigo-500">Aggiungi Budget</button>
+  <button type="submit" className="glass-button">Aggiungi Budget</button>
     </form>
   );
 };

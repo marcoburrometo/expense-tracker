@@ -7,6 +7,7 @@ export const ExpenseList: React.FC = () => {
   const { expenses, deleteExpense, updateExpense } = useTracker();
   const [filter, setFilter] = useState<'all'|'oneoff'|'recurring'>('all');
   const [editingId, setEditingId] = useState<string|null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string|null>(null);
   const [form, setForm] = useState<{description:string; amount:string; category:string; direction:'in'|'out'; date:string}>({description:'', amount:'', category:'', direction:'out', date:''});
 
   function startEdit(e: AnyExpense){
@@ -41,16 +42,16 @@ export const ExpenseList: React.FC = () => {
   }, [expenses, filter]);
 
   return (
-    <div className="p-4 border rounded-md bg-white/70 dark:bg-neutral-800/60 w-full max-w-2xl">
+  <div className="glass-panel p-5 w-full max-w-2xl space-y-3">
       <div className="flex items-center justify-between mb-2">
         <h2 className="font-semibold text-lg">Spese</h2>
-  <select value={filter} onChange={e=>setFilter(e.target.value as 'all'|'oneoff'|'recurring')} className="text-sm border rounded px-2 py-1">
+  <select value={filter} onChange={e=>setFilter(e.target.value as 'all'|'oneoff'|'recurring')} className="text-xs md:text-sm glass-input">
           <option value="all">Tutte</option>
           <option value="oneoff">Una Tantum</option>
           <option value="recurring">Ricorrenti</option>
         </select>
       </div>
-      <ul className="divide-y text-sm max-h-80 overflow-auto">
+  <ul className="divide-y divide-white/40 dark:divide-white/10 text-sm max-h-80 overflow-auto glass-scroll pr-1">
         {filtered.map(e=> {
           const isEditing = editingId === e.id;
           return (
@@ -60,8 +61,8 @@ export const ExpenseList: React.FC = () => {
                   <div className="flex-1">
                     <div className="flex gap-2 items-center">
                       <span className="font-medium">{e.description}</span>
-                      {e.type==='recurring-template' && <span className="text-[10px] px-1 py-0.5 rounded bg-amber-200 text-amber-900">TEMPLATE</span>}
-                      {e.type==='recurring-instance' && <span className="text-[10px] px-1 py-0.5 rounded bg-emerald-200 text-emerald-900">RICORRENZA</span>}
+                      {e.type==='recurring-template' && <span className="glass-badge badge-template">TEMPLATE</span>}
+                      {e.type==='recurring-instance' && <span className="glass-badge badge-instance">RICORRENZA</span>}
                     </div>
                     <div className="text-xs text-neutral-600 dark:text-neutral-400">
                       {e.type !== 'recurring-template' ? e.date.slice(0,10) : '—'} · {e.category}
@@ -70,27 +71,37 @@ export const ExpenseList: React.FC = () => {
                   <div className="text-right min-w-[110px]">
                     <div className={`font-mono ${e.direction==='in'?'text-green-600':'text-red-600'}`}>{e.direction==='in'?'+':'-'}€ {e.amount.toFixed(2)}</div>
                     <div className="flex gap-2 justify-end mt-1">
-                      <button onClick={()=>startEdit(e)} className="text-xs text-blue-600 hover:underline">Modifica</button>
-                      <button onClick={()=>deleteExpense(e.id)} className="text-xs text-red-600 hover:underline">X</button>
+                      {confirmDeleteId === e.id ? (
+                        <>
+                          <span className="text-[10px] self-center font-medium text-red-600">Confermi?</span>
+                          <button onClick={()=>{ deleteExpense(e.id); setConfirmDeleteId(null); }} className="glass-button glass-button--danger text-[10px]">Elimina</button>
+                          <button onClick={()=>setConfirmDeleteId(null)} className="glass-button text-[10px]">Annulla</button>
+                        </>
+                      ) : (
+                        <>
+                          <button onClick={()=>startEdit(e)} className="glass-button glass-button--primary text-[10px]">Modifica</button>
+                          <button onClick={()=>setConfirmDeleteId(e.id)} className="glass-button glass-button--danger text-[10px]" aria-label="Elimina">X</button>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
               )}
               {isEditing && (
-                <form onSubmit={(ev)=>{ev.preventDefault(); submitEdit(e.id, e.type);}} className="bg-neutral-50 dark:bg-neutral-700 p-2 rounded border flex flex-col gap-2 text-xs">
+                <form onSubmit={(ev)=>{ev.preventDefault(); submitEdit(e.id, e.type);}} className="glass-panel p-3 flex flex-col gap-2 text-xs">
                   <div className="grid grid-cols-5 gap-2">
-                    <input className="col-span-2 px-1 py-0.5 border rounded" value={form.description} onChange={ev=>setForm(f=>({...f, description: ev.target.value}))} />
-                    <input className="px-1 py-0.5 border rounded" type="number" step="0.01" value={form.amount} onChange={ev=>setForm(f=>({...f, amount: ev.target.value}))} />
-                    {e.type!=='recurring-template' && <input className="px-1 py-0.5 border rounded" type="date" value={form.date} onChange={ev=>setForm(f=>({...f, date: ev.target.value}))} />}
-                    <select className="px-1 py-0.5 border rounded" value={form.direction} onChange={ev=>setForm(f=>({...f, direction: ev.target.value as 'in'|'out'}))}>
+                    <input className="col-span-2 glass-input" value={form.description} onChange={ev=>setForm(f=>({...f, description: ev.target.value}))} />
+                    <input className="glass-input" type="number" step="0.01" value={form.amount} onChange={ev=>setForm(f=>({...f, amount: ev.target.value}))} />
+                    {e.type!=='recurring-template' && <input className="glass-input" type="date" value={form.date} onChange={ev=>setForm(f=>({...f, date: ev.target.value}))} />}
+                    <select className="glass-input" value={form.direction} onChange={ev=>setForm(f=>({...f, direction: ev.target.value as 'in'|'out'}))}>
                       <option value="out">Uscita</option>
                       <option value="in">Entrata</option>
                     </select>
-                    <input className="col-span-2 px-1 py-0.5 border rounded" value={form.category} onChange={ev=>setForm(f=>({...f, category: ev.target.value}))} />
+                    <input className="col-span-2 glass-input" value={form.category} onChange={ev=>setForm(f=>({...f, category: ev.target.value}))} />
                   </div>
                   <div className="flex gap-2 justify-end">
-                    <button type="button" onClick={()=>setEditingId(null)} className="px-2 py-0.5 rounded border">Annulla</button>
-                    <button type="submit" className="px-2 py-0.5 rounded bg-blue-600 text-white">Salva</button>
+                    <button type="button" onClick={()=>setEditingId(null)} className="glass-button">Annulla</button>
+                    <button type="submit" className="glass-button glass-button--success">Salva</button>
                   </div>
                 </form>
               )}

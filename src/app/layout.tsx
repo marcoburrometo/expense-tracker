@@ -3,7 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
         import { MovementFiltersProvider } from '@/state/MovementFiltersContext';
 import { TrackerProvider } from '@/state/TrackerContext';
-import Link from 'next/link';
+import { Navbar } from '@/components/Navbar';
+import { ThemeProvider } from '@/state/ThemeContext';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,17 +29,16 @@ export default function RootLayout({
   return (
     <html lang="en">
           <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-gradient-to-br from-slate-100 to-slate-200 dark:from-neutral-900 dark:to-neutral-950 text-neutral-900 dark:text-neutral-50`}>
-            <MovementFiltersProvider>
+            <ThemeProvider>
+              <MovementFiltersProvider>
               <TrackerProvider>
-                <div className="w-full border-b border-black/10 dark:border-white/10 bg-white/60 dark:bg-neutral-900/60 backdrop-blur supports-[backdrop-filter]:bg-white/40 dark:supports-[backdrop-filter]:bg-neutral-900/40 sticky top-0 z-10">
-                  <nav className="mx-auto max-w-7xl px-4 py-3 flex items-center gap-6 text-sm">
-                    <Link href="/" className="font-semibold hover:underline underline-offset-4">Movimenti</Link>
-                    <Link href="/configurazione-movimenti" className="hover:underline underline-offset-4">Configurazione Movimenti</Link>
-                  </nav>
+                <div className="sticky top-0 z-20 px-4 pt-4">
+                  <Navbar />
                 </div>
                 {children}
               </TrackerProvider>
-            </MovementFiltersProvider>
+              </MovementFiltersProvider>
+            </ThemeProvider>
           </body>
     </html>
   );

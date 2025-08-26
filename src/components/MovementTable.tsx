@@ -145,19 +145,19 @@ export const MovementTable: React.FC = () => {
   }
 
   return (
-    <div className="border rounded-md bg-white/70 dark:bg-neutral-800/50 flex flex-col">
-      <div className="p-3 border-b border-neutral-200 dark:border-neutral-700 flex flex-wrap gap-3 items-end text-xs md:text-[13px]">
+    <div className="glass-panel flex flex-col">
+      <div className="p-3 border-b border-white/40 dark:border-white/10 flex flex-wrap gap-3 items-end text-xs md:text-[13px]">
         <div className="flex flex-col">
           <label htmlFor="mov-from" className="uppercase tracking-wide text-[10px] font-semibold">Da</label>
-          <input id="mov-from" type="date" value={from} onChange={e=>update({ from: e.target.value })} className="px-2 py-1 border rounded bg-white dark:bg-neutral-700" />
+          <input id="mov-from" type="date" value={from} onChange={e=>update({ from: e.target.value })} className="glass-input" />
         </div>
         <div className="flex flex-col">
           <label htmlFor="mov-to" className="uppercase tracking-wide text-[10px] font-semibold">A</label>
-          <input id="mov-to" type="date" value={to} onChange={e=>update({ to: e.target.value })} className="px-2 py-1 border rounded bg-white dark:bg-neutral-700" />
+          <input id="mov-to" type="date" value={to} onChange={e=>update({ to: e.target.value })} className="glass-input" />
         </div>
         <div className="flex flex-col min-w-[140px]">
           <label htmlFor="mov-dir" className="uppercase tracking-wide text-[10px] font-semibold">Direzione</label>
-          <select id="mov-dir" value={dir} onChange={e=>update({ dir: e.target.value as 'all'|'in'|'out' })} className="px-2 py-1 border rounded bg-white dark:bg-neutral-700">
+          <select id="mov-dir" value={dir} onChange={e=>update({ dir: e.target.value as 'all'|'in'|'out' })} className="glass-input">
             <option value="all">Entrate + Uscite</option>
             <option value="in">Solo Entrate</option>
             <option value="out">Solo Uscite</option>
@@ -165,29 +165,29 @@ export const MovementTable: React.FC = () => {
         </div>
         <div className="flex flex-col min-w-[140px]">
           <label htmlFor="mov-cat" className="uppercase tracking-wide text-[10px] font-semibold">Categoria</label>
-          <select id="mov-cat" value={category} onChange={e=>update({ category: e.target.value })} className="px-2 py-1 border rounded bg-white dark:bg-neutral-700">
+          <select id="mov-cat" value={category} onChange={e=>update({ category: e.target.value })} className="glass-input">
             <option value="">Tutte</option>
             {categories.map(c=> <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
         <div className="flex flex-col flex-1 min-w-[160px]">
           <label htmlFor="mov-search" className="uppercase tracking-wide text-[10px] font-semibold">Cerca</label>
-          <input id="mov-search" placeholder="testo o categoria" value={q} onChange={e=>update({ q: e.target.value })} className="px-2 py-1 border rounded bg-white dark:bg-neutral-700" />
+          <input id="mov-search" placeholder="testo o categoria" value={q} onChange={e=>update({ q: e.target.value })} className="glass-input" />
         </div>
         <div className="flex gap-2 ml-auto">
-          <button onClick={()=>update({ sortDesc: !sortDesc })} className="px-2 py-1 border rounded bg-neutral-50 dark:bg-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-600">{sortDesc?'↓':'↑'} Ordina</button>
-          <button onClick={exportCSV} className="px-2 py-1 border rounded bg-blue-600 text-white hover:bg-blue-500">Export CSV</button>
+          <button onClick={()=>update({ sortDesc: !sortDesc })} className="glass-button" aria-label="Cambia ordinamento">{sortDesc?'↓':'↑'} Ordina</button>
+          <button onClick={exportCSV} className="glass-button glass-button--primary" aria-label="Esporta file CSV">Export CSV</button>
         </div>
       </div>
-      <div className="px-3 py-2 border-b border-neutral-200 dark:border-neutral-700 flex gap-6 text-xs flex-wrap">
+      <div className="px-3 py-2 border-b border-white/40 dark:border-white/10 flex gap-6 text-xs flex-wrap">
         <span className="text-green-700 dark:text-green-400">Entrate: € {totals.inc.toFixed(2)}</span>
         <span className="text-red-600 dark:text-red-400">Uscite: € {totals.out.toFixed(2)}</span>
         <span className={`${totals.net>=0?'text-emerald-700 dark:text-emerald-400':'text-red-700 dark:text-red-400'}`}>Saldo Netto: € {totals.net.toFixed(2)}</span>
   {rows.length>0 && <span className="text-neutral-500">Saldo Finale: € {rows[rows.length-1].balance.toFixed(2)}</span>}
       </div>
-      <div className="overflow-auto max-h-[480px]">
-        <table className="w-full text-sm">
-          <thead className="sticky top-0 bg-neutral-100 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-200 shadow-sm">
+      <div className="overflow-auto max-h-[480px] glass-scroll">
+        <table className="glass-table">
+          <thead className="sticky top-0 bg-white/55 dark:bg-slate-800/45 backdrop-blur text-neutral-700 dark:text-neutral-200 shadow-sm">
             <tr>
               <th className="px-2 py-1 text-left">Data</th>
               <th className="px-2 py-1 text-left">Descrizione</th>
@@ -197,11 +197,11 @@ export const MovementTable: React.FC = () => {
               <th className="px-2 py-1 text-right">Saldo</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-neutral-200 dark:divide-neutral-700">
+          <tbody>
             {rows.map(r => (
-              <tr key={r.id} className="hover:bg-neutral-50/80 dark:hover:bg-neutral-700/40">
+              <tr key={r.id}>
                 <td className="px-2 py-1 font-mono tabular-nums">{r.date}</td>
-                <td className="px-2 py-1">{r.description} {r.projected && <span className="ml-1 text-[10px] px-1 py-0.5 rounded bg-indigo-200 text-indigo-800">FUTURO</span>}</td>
+                <td className="px-2 py-1">{r.description} {r.projected && <span className="ml-1 glass-badge badge-future">FUTURO</span>}</td>
                 <td className="px-2 py-1">{r.category}</td>
                 <td className="px-2 py-1 text-right text-green-600 font-mono">{r.direction==='in'?`€ ${r.amount.toFixed(2)}`:''}</td>
                 <td className="px-2 py-1 text-right text-red-600 font-mono">{r.direction==='out'?`€ ${r.amount.toFixed(2)}`:''}</td>
