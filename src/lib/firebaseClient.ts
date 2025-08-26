@@ -17,9 +17,11 @@ const firebaseConfig = {
 
 let app: FirebaseApp;
 
-console.log('......', firebaseConfig);
+console.log('......', process.env);
 
 export function getFirebaseApp() {
+  console.log('....1', process.env.NODE_ENV);
+
   if (!getApps().length) {
     if (process.env.NODE_ENV === 'development') {
       app = initializeApp(firebaseConfig);
@@ -34,4 +36,7 @@ export function getFirebaseApp() {
   return app;
 }
 
-export const auth = () => getAuth(getFirebaseApp());
+export const auth = () => {
+  console.log('....0');
+   return getAuth(getFirebaseApp());
+}
