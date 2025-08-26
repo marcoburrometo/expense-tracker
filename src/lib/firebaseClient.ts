@@ -17,7 +17,7 @@ const firebaseConfig = {
 
 let app: FirebaseApp;
 
-console.log('......', firebaseConfig)
+console.log('......', firebaseConfig, process.env.NEXT_PUBLIC_FIREBASE_API_KEY);
 
 export function getFirebaseApp() {
   if (!getApps().length) {
