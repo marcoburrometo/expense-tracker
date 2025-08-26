@@ -24,7 +24,7 @@
       "**/node_modules/**"
     ],
     "frameworksBackend": {
-      "region": "europe-west1"
+      "region": "europe-west4"
     }
   }
 }
