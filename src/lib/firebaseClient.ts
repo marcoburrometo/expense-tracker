@@ -17,11 +17,17 @@ const firebaseConfig = {
 
 let app: FirebaseApp;
 
-console.log('......', firebaseConfig, process.env.NEXT_PUBLIC_FIREBASE_API_KEY);
+console.log('......', firebaseConfig);
 
 export function getFirebaseApp() {
   if (!getApps().length) {
-    app = initializeApp(firebaseConfig);
+    if (process.env.NODE_ENV === 'development') {
+      app = initializeApp(firebaseConfig);
+    } else {
+      // In production do not use the local firebaseConfig object.
+      // Rely on runtime-provided configuration (e.g. hosting-injected config) or initialize elsewhere.
+      app = initializeApp();
+    }
   } else if (!app) {
     app = getApps()[0]!;
   }
