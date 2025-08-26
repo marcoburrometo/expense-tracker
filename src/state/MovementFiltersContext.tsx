@@ -4,7 +4,7 @@ import React, { createContext, useContext, useMemo, useState, useCallback } from
 export interface MovementFiltersState {
   from: string; // ISO date (YYYY-MM-DD)
   to: string;   // ISO date
-  dir: 'all'|'in'|'out';
+  dir: 'all' | 'in' | 'out';
   category: string; // '' = all
   q: string; // search text
   sortDesc: boolean; // table sort direction
@@ -21,29 +21,33 @@ interface MovementFiltersContextValue extends MovementFiltersState {
 const MovementFiltersContext = createContext<MovementFiltersContextValue | null>(null);
 
 export const MovementFiltersProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const defaults: MovementFiltersState = useMemo(()=> {
+  const defaults: MovementFiltersState = useMemo(() => {
     const now = new Date();
+    const sixMonths = new Date(now);
+    sixMonths.setMonth(sixMonths.getMonth() + 6);
+
     return {
-    from: new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0,10),
-    to: new Date(now.getFullYear()+1, 11, 31).toISOString().slice(0,10),
-    dir: 'all',
-    category: '',
-    q: '',
-    sortDesc: false, // ascending default
-    includeProj: true,
-    smooth: false,
-  };}, []);
+      from: new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10),
+      to: sixMonths.toISOString().slice(0, 10),
+      dir: 'all',
+      category: '',
+      q: '',
+      sortDesc: false, // ascending default
+      includeProj: true,
+      smooth: false,
+    };
+  }, []);
   const [state, setState] = useState<MovementFiltersState>(defaults);
 
-  const setFilters = useCallback((fn: (p: MovementFiltersState)=>MovementFiltersState) => setState(fn), []);
+  const setFilters = useCallback((fn: (p: MovementFiltersState) => MovementFiltersState) => setState(fn), []);
   const update = useCallback((patch: Partial<MovementFiltersState>) => {
     setState(s => {
       let changed = false;
       const draft: MovementFiltersState = { ...s };
       (Object.keys(patch) as (keyof MovementFiltersState)[]).forEach(k => {
         const val = patch[k];
-        if(val !== undefined && draft[k] !== val){
-          switch(k){
+        if (val !== undefined && draft[k] !== val) {
+          switch (k) {
             case 'from':
             case 'to':
             case 'category':
@@ -64,9 +68,9 @@ export const MovementFiltersProvider: React.FC<{ children: React.ReactNode }> = 
       return changed ? draft : s;
     });
   }, []);
-  const reset = useCallback(()=> setState(defaults), [defaults]);
+  const reset = useCallback(() => setState(defaults), [defaults]);
 
-  const value: MovementFiltersContextValue = useMemo(()=> ({ ...state, setFilters, update, reset }), [state, setFilters, update, reset]);
+  const value: MovementFiltersContextValue = useMemo(() => ({ ...state, setFilters, update, reset }), [state, setFilters, update, reset]);
   return <MovementFiltersContext.Provider value={value}>{children}</MovementFiltersContext.Provider>;
 };
 

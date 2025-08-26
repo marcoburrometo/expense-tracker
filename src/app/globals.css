@@ -278,6 +278,11 @@ html.dark .app-main {
   /* create stacking context so z-index inside is predictable */
 }
 
+/* Allow selective overflow visibility (e.g. nav tooltip) */
+.glass-panel--overflow-visible {
+  overflow: visible !important;
+}
+
 /* Ensure child content sits above decorative pseudo-elements */
 .glass-panel>* {
   position: relative;
@@ -365,6 +370,41 @@ html.dark .glass-panel--solid {
   .glass-panel--subtle {
     background: var(--surface-glass-solid);
   }
+}
+
+/* Glass gradient brand text (background overlays removed per request) */
+.glass-text-brand {
+  background: linear-gradient(120deg,
+      rgba(56 189 248 / 0.92) 0%,
+      rgba(56 189 248 / 0.85) 12%,
+      rgba(45 212 191 / 0.80) 28%,
+      rgba(99 102 241 / 0.78) 55%,
+      rgba(139 92 246 / 0.80) 72%,
+      rgba(236 72 153 / 0.75) 90%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 2px 6px rgba(0 0 0 / 0.28)) drop-shadow(0 0 5px rgba(56 189 248 / 0.45));
+  position: relative;
+}
+
+html[data-theme='dark'] .glass-text-brand,
+html.dark .glass-text-brand {
+  background: linear-gradient(120deg,
+      rgba(56 189 248 / 0.95) 0%,
+      rgba(45 212 191 / 0.88) 20%,
+      rgba(99 102 241 / 0.85) 48%,
+      rgba(139 92 246 / 0.85) 70%,
+      rgba(236 72 153 / 0.80) 92%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 2px 8px rgba(0 0 0 / 0.55)) drop-shadow(0 0 5px rgba(99 102 241 / 0.55));
+}
+
+/* Slight animation on hover (optional subtle shimmer) */
+.glass-text-brand:hover {
+  text-shadow: 0 0 6px rgba(255 255 255 / 0.35);
 }
 
 /* Highlight bloom */

@@ -1,7 +1,8 @@
 {
-  "name": "expense-tracker",
-  "version": "0.1.0",
+  "name": "janet-expense-tracker",
+  "version": "0.1.1",
   "private": true,
+  "description": "JANET – Just ANother Expense Tracker: glass UI budgeting, calendar insights, multi-workspace Firebase sync",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",

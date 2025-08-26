@@ -1,6 +1,8 @@
-# Expense Tracker (Glass UI + Workspaces + Firebase Sync)
+# JANET – Just ANother Expense Tracker
 
-Expense and budget tracking app with glass UI, recurring items, advanced calendar, and multi‑workspace Firebase sync.
+> Glass UI budgeting & calendar intelligence with multi‑workspace Firebase sync.
+
+JANET ("Just ANother Expense Tracker") è un tracker di spese e budget con un'interfaccia glass raffinata, calendario avanzato (heat / istanze ricorrenti), multi‑workspace collaborativi e sincronizzazione cloud ottimizzata.
 
 ## Stack
 
