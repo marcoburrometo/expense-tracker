@@ -19,6 +19,31 @@ body {
   width: 100%;
   display: flex;
   flex-direction: column;
+  position: relative;
+}
+
+/* Top ambient fade lives on shell so it does NOT scroll with content */
+.app-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 88px;
+  /* cover navbar + soft blend zone */
+  pointer-events: none;
+  z-index: 0;
+  /* sits below sticky nav (z-20) and above body bg */
+  background-color: #e1ecf6;
+  mix-blend-mode: normal;
+}
+
+html[data-theme='dark'] .app-shell::before,
+html.dark .app-shell::before {
+  background-color: #122034;
+}
+
+/* Ensure stacking: navbar (z-20) > overlay (z-0) > main backgrounds */
+.app-main {
+  z-index: 0;
 }
 
 .app-main {
