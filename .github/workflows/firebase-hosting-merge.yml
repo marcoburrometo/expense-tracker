@@ -12,6 +12,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: 'Remove package-lock.json'
+        run: rm -f package-lock.json
+      
+
       # Diagnose current npm auth/registry state BEFORE we sanitize (to understand 401 source)
       - name: Diagnose npm auth
         run: |
