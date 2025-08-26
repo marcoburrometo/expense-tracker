@@ -8,62 +8,62 @@ import { DayDetails } from '@/components/calendar/DayDetails';
 import { useMovementFilters } from '@/state/MovementFiltersContext';
 import { Confirm } from '@/components/Confirm';
 
-function startOfMonth(d: Date){ return new Date(d.getFullYear(), d.getMonth(), 1); }
-function endOfMonth(d: Date){ return new Date(d.getFullYear(), d.getMonth()+1, 0); }
-function fmt(date: Date){ return date.toISOString().slice(0,10); }
+function startOfMonth(d: Date) { return new Date(d.getFullYear(), d.getMonth(), 1); }
+function endOfMonth(d: Date) { return new Date(d.getFullYear(), d.getMonth() + 1, 0); }
+function fmt(date: Date) { return date.toISOString().slice(0, 10); }
 
 export const CalendarView: React.FC = () => {
   const { expenses, addOneOff } = useTracker();
   const filters = useMovementFilters();
-  const [cursor, setCursor] = useState(()=> new Date());
-  const [activeDay, setActiveDay] = useState<string|null>(null);
+  const [cursor, setCursor] = useState(() => new Date());
+  const [activeDay, setActiveDay] = useState<string | null>(null);
   const [formDesc, setFormDesc] = useState('');
   const [formAmount, setFormAmount] = useState('');
-  const [formDir, setFormDir] = useState<'in'|'out'>('out');
+  const [formDir, setFormDir] = useState<'in' | 'out'>('out');
   const [formCat, setFormCat] = useState('Generale');
-  const [viewMode, setViewMode] = useState<'list'|'category'>('list');
-  const [sortBy, setSortBy] = useState<'date'|'amount'>('date');
+  const [viewMode, setViewMode] = useState<'list' | 'category'>('list');
+  const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
   const [showSynthetic, setShowSynthetic] = useState(true);
   const monthStart = startOfMonth(cursor);
   const monthEnd = endOfMonth(cursor);
 
   const getExpenseDate = (e: AnyExpense) => e.type === 'oneoff' || e.type === 'recurring-instance' ? e.date : e.startDate;
 
-  const grid = useMemo(()=> {
-    const startWeekDay = (monthStart.getDay()+6)%7;
+  const grid = useMemo(() => {
+    const startWeekDay = (monthStart.getDay() + 6) % 7;
     const daysInMonth = monthEnd.getDate();
-    const cells: (Date|null)[] = [];
-    for(let i=0;i<startWeekDay;i++) cells.push(null);
-    for(let d=1; d<=daysInMonth; d++) cells.push(new Date(monthStart.getFullYear(), monthStart.getMonth(), d));
-    while(cells.length % 7 !== 0) cells.push(null);
+    const cells: (Date | null)[] = [];
+    for (let i = 0; i < startWeekDay; i++) cells.push(null);
+    for (let d = 1; d <= daysInMonth; d++) cells.push(new Date(monthStart.getFullYear(), monthStart.getMonth(), d));
+    while (cells.length % 7 !== 0) cells.push(null);
     return cells;
   }, [monthStart, monthEnd]);
 
-  const buckets = useMemo(()=> {
+  const buckets = useMemo(() => {
     const map = new Map<string, DayBucket>();
     const templates: RecurringExpenseTemplate[] = [];
     const existingTemplateDates = new Set<string>();
 
     const pushExpense = (e: AnyExpense) => {
-      const date = getExpenseDate(e).slice(0,10);
+      const date = getExpenseDate(e).slice(0, 10);
       const dt = new Date(date);
-      if(dt < monthStart || dt > monthEnd) return;
+      if (dt < monthStart || dt > monthEnd) return;
       let bucket = map.get(date);
-      if(!bucket){ bucket = { date, in:0, out:0, items:[] }; map.set(date, bucket); }
-      if(e.direction==='in') bucket.in += e.amount; else bucket.out += e.amount;
+      if (!bucket) { bucket = { date, in: 0, out: 0, items: [] }; map.set(date, bucket); }
+      if (e.direction === 'in') bucket.in += e.amount; else bucket.out += e.amount;
       bucket.items.push(e);
-      if(isRecurringInstance(e)) existingTemplateDates.add(`${e.templateId}|${date}`);
+      if (isRecurringInstance(e)) existingTemplateDates.add(`${e.templateId}|${date}`);
     };
 
-    for(const e of expenses){
-      if(isTemplate(e)) templates.push(e); else pushExpense(e);
+    for (const e of expenses) {
+      if (isTemplate(e)) templates.push(e); else pushExpense(e);
     }
 
     const addSynthetic = (tmpl: RecurringExpenseTemplate, occ: Date) => {
-      if(occ < monthStart || occ > monthEnd) return;
-      if(tmpl.endDate && occ > new Date(tmpl.endDate)) return;
-      const key = occ.toISOString().slice(0,10);
-      if(existingTemplateDates.has(`${tmpl.id}|${key}`)) return;
+      if (occ < monthStart || occ > monthEnd) return;
+      if (tmpl.endDate && occ > new Date(tmpl.endDate)) return;
+      const key = occ.toISOString().slice(0, 10);
+      if (existingTemplateDates.has(`${tmpl.id}|${key}`)) return;
       pushExpense({
         id: `synthetic-${tmpl.id}-${key}`,
         type: 'recurring-instance',
@@ -72,7 +72,7 @@ export const CalendarView: React.FC = () => {
         amount: tmpl.amount,
         category: tmpl.category,
         direction: tmpl.direction,
-        date: new Date(occ.getFullYear(), occ.getMonth(), occ.getDate(), 12,0,0).toISOString(),
+        date: new Date(occ.getFullYear(), occ.getMonth(), occ.getDate(), 12, 0, 0).toISOString(),
         createdAt: tmpl.createdAt,
         updatedAt: tmpl.updatedAt,
       } as AnyExpense);
@@ -82,100 +82,100 @@ export const CalendarView: React.FC = () => {
       const start = new Date(tmpl.startDate);
       const dayMs = 86400000;
       let cur = new Date(start);
-      if(cur < monthStart){
-        const diff = Math.floor((monthStart.getTime() - cur.getTime())/dayMs);
+      if (cur < monthStart) {
+        const diff = Math.floor((monthStart.getTime() - cur.getTime()) / dayMs);
         const rem = diff % 7;
-        cur = new Date(monthStart.getTime() + (rem? (7-rem):0)*dayMs);
+        cur = new Date(monthStart.getTime() + (rem ? (7 - rem) : 0) * dayMs);
       }
-      while(cur <= monthEnd){ addSynthetic(tmpl, cur); cur = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate()+7); }
+      while (cur <= monthEnd) { addSynthetic(tmpl, cur); cur = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() + 7); }
     };
     const genMonthly = (tmpl: RecurringExpenseTemplate) => {
       const start = new Date(tmpl.startDate);
       const day = start.getDate();
-      const occDay = Math.min(day, new Date(monthStart.getFullYear(), monthStart.getMonth()+1,0).getDate());
+      const occDay = Math.min(day, new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0).getDate());
       const occ = new Date(monthStart.getFullYear(), monthStart.getMonth(), occDay);
-      if(occ >= start) addSynthetic(tmpl, occ);
+      if (occ >= start) addSynthetic(tmpl, occ);
     };
     const genYearly = (tmpl: RecurringExpenseTemplate) => {
       const start = new Date(tmpl.startDate);
-      if(start.getMonth() !== monthStart.getMonth()) return;
-      const occDay = Math.min(start.getDate(), new Date(monthStart.getFullYear(), monthStart.getMonth()+1,0).getDate());
+      if (start.getMonth() !== monthStart.getMonth()) return;
+      const occDay = Math.min(start.getDate(), new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0).getDate());
       const occ = new Date(monthStart.getFullYear(), monthStart.getMonth(), occDay);
-      if(occ >= start) addSynthetic(tmpl, occ);
+      if (occ >= start) addSynthetic(tmpl, occ);
     };
 
-    for(const tmpl of templates){
+    for (const tmpl of templates) {
       const start = new Date(tmpl.startDate);
-      if(start > monthEnd) continue;
-      if(tmpl.endDate && new Date(tmpl.endDate) < monthStart) continue;
-      switch(tmpl.frequency){
+      if (start > monthEnd) continue;
+      if (tmpl.endDate && new Date(tmpl.endDate) < monthStart) continue;
+      switch (tmpl.frequency) {
         case 'weekly': genWeekly(tmpl); break;
         case 'monthly': genMonthly(tmpl); break;
         case 'yearly': genYearly(tmpl); break;
       }
     }
 
-    for(const b of map.values()){
+    for (const b of map.values()) {
       b.items = b.items
-        .filter(e=> showSynthetic || !isSyntheticInstance(e))
-        .sort((a,bx)=> {
+        .filter(e => showSynthetic || !isSyntheticInstance(e))
+        .sort((a, bx) => {
           const da = getExpenseDate(a).localeCompare(getExpenseDate(bx));
-          if(da !== 0) return da;
+          if (da !== 0) return da;
           return bx.amount - a.amount;
         });
-      b.in = b.items.filter(i=> i.direction==='in').reduce((s,i)=> s+i.amount,0);
-      b.out = b.items.filter(i=> i.direction==='out').reduce((s,i)=> s+i.amount,0);
+      b.in = b.items.filter(i => i.direction === 'in').reduce((s, i) => s + i.amount, 0);
+      b.out = b.items.filter(i => i.direction === 'out').reduce((s, i) => s + i.amount, 0);
     }
     return map;
   }, [expenses, monthStart, monthEnd, showSynthetic]);
 
-  const monthLabel = cursor.toLocaleDateString(undefined, { month:'long', year:'numeric' });
-  const prev = useCallback(()=> { setCursor(d=> new Date(d.getFullYear(), d.getMonth()-1, 1)); }, []);
-  const next = useCallback(()=> { setCursor(d=> new Date(d.getFullYear(), d.getMonth()+1, 1)); }, []);
-  const today = useCallback(()=> { setCursor(new Date()); }, []);
+  const monthLabel = cursor.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+  const prev = useCallback(() => { setCursor(d => new Date(d.getFullYear(), d.getMonth() - 1, 1)); }, []);
+  const next = useCallback(() => { setCursor(d => new Date(d.getFullYear(), d.getMonth() + 1, 1)); }, []);
+  const today = useCallback(() => { setCursor(new Date()); }, []);
 
   const cursorYear = cursor.getFullYear();
   const cursorMonth = cursor.getMonth();
   const syncRange = `${cursorYear}-${cursorMonth}`;
-  React.useEffect(()=> {
-    const from = new Date(cursorYear, cursorMonth, 1).toISOString().slice(0,10);
-    const to = new Date(cursorYear, cursorMonth+1, 0).toISOString().slice(0,10);
-    if(filters.from !== from || filters.to !== to){ filters.update({ from, to }); }
+  React.useEffect(() => {
+    const from = new Date(cursorYear, cursorMonth, 1).toISOString().slice(0, 10);
+    const to = new Date(cursorYear, cursorMonth + 1, 0).toISOString().slice(0, 10);
+    if (filters.from !== from || filters.to !== to) { filters.update({ from, to }); }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [syncRange, filters.from, filters.to]);
 
-  function submitAdd(e: React.FormEvent){
+  function submitAdd(e: React.FormEvent) {
     e.preventDefault();
-    if(!activeDay) return;
+    if (!activeDay) return;
     const amt = parseFloat(formAmount);
-    if(!formDesc.trim() || isNaN(amt) || amt<=0) return;
+    if (!formDesc.trim() || isNaN(amt) || amt <= 0) return;
     addOneOff({ description: formDesc.trim(), amount: amt, date: activeDay, category: formCat, direction: formDir });
     setFormDesc(''); setFormAmount(''); setFormCat('Generale'); setFormDir('out');
   }
 
-  React.useEffect(()=> {
-    function onKey(e: KeyboardEvent){
-      if(e.key === 'ArrowLeft') prev();
-      else if(e.key === 'ArrowRight') next();
-      else if(e.key === 't' && (e.metaKey || e.ctrlKey)) today();
-      else if(e.key === 'Escape' && activeDay) setActiveDay(null);
+  React.useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'ArrowLeft') prev();
+      else if (e.key === 'ArrowRight') next();
+      else if (e.key === 't' && (e.metaKey || e.ctrlKey)) today();
+      else if (e.key === 'Escape' && activeDay) setActiveDay(null);
     }
     window.addEventListener('keydown', onKey);
-    return ()=> window.removeEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   }, [prev, next, today, activeDay]);
 
   return (
-    <div className="glass-panel p-4 flex flex-col gap-4 fade-in">
+    <div className="glass-panel glass-panel--pure p-4 flex flex-col gap-4 fade-in">
       <div className="flex items-center gap-2 justify-between flex-wrap">
         <div className="flex items-center gap-2 flex-wrap">
           <button onClick={prev} className="glass-button glass-button--sm pressable" aria-label="Mese precedente">←</button>
           <button onClick={today} className="glass-button glass-button--sm pressable" aria-label="Oggi">Oggi</button>
           <button onClick={next} className="glass-button glass-button--sm pressable" aria-label="Mese successivo">→</button>
-          <select value={cursor.getMonth()} onChange={e=> setCursor(new Date(cursor.getFullYear(), parseInt(e.target.value), 1))} className="glass-input glass-input--sm text-[11px]" aria-label="Mese">
-            {Array.from({length:12}).map((_,m)=> { const label = new Date(2000,m,1).toLocaleString(undefined,{month:'short'}); return <option key={label} value={m}>{label}</option>; })}
+          <select value={cursor.getMonth()} onChange={e => setCursor(new Date(cursor.getFullYear(), parseInt(e.target.value), 1))} className="glass-input glass-input--sm text-[11px]" aria-label="Mese">
+            {Array.from({ length: 12 }).map((_, m) => { const label = new Date(2000, m, 1).toLocaleString(undefined, { month: 'short' }); return <option key={label} value={m}>{label}</option>; })}
           </select>
-          <select value={cursor.getFullYear()} onChange={e=> setCursor(new Date(parseInt(e.target.value), cursor.getMonth(), 1))} className="glass-input glass-input--sm text-[11px]" aria-label="Anno">
-            {Array.from({length:5}).map((_,i)=> { const y = new Date().getFullYear()-2+i; return <option key={y} value={y}>{y}</option>; })}
+          <select value={cursor.getFullYear()} onChange={e => setCursor(new Date(parseInt(e.target.value), cursor.getMonth(), 1))} className="glass-input glass-input--sm text-[11px]" aria-label="Anno">
+            {Array.from({ length: 5 }).map((_, i) => { const y = new Date().getFullYear() - 2 + i; return <option key={y} value={y}>{y}</option>; })}
           </select>
         </div>
         <h2 className="font-semibold text-lg heading-gradient capitalize flex items-center gap-2">
@@ -183,36 +183,36 @@ export const CalendarView: React.FC = () => {
           <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/30 dark:bg-indigo-500/25 border border-indigo-500/50 text-indigo-700 dark:text-indigo-200 shadow-sm">Calendario</span>
         </h2>
         <div className="text-xs text-muted flex gap-3">
-          <span>Entrate: <span className="text-green-600 dark:text-green-400">€ {Array.from(buckets.values()).reduce((s,b)=> s+b.in,0).toFixed(2)}</span></span>
-          <span>Uscite: <span className="text-red-600 dark:text-red-400">€ {Array.from(buckets.values()).reduce((s,b)=> s+b.out,0).toFixed(2)}</span></span>
+          <span>Entrate: <span className="text-success">€ {Array.from(buckets.values()).reduce((s, b) => s + b.in, 0).toFixed(2)}</span></span>
+          <span>Uscite: <span className="text-danger">€ {Array.from(buckets.values()).reduce((s, b) => s + b.out, 0).toFixed(2)}</span></span>
         </div>
       </div>
       <div className="flex items-center gap-4 text-[10px] -mt-2">
         <label className="flex items-center gap-1 cursor-pointer select-none">
-          <input type="checkbox" className="accent-indigo-500" checked={showSynthetic} onChange={e=> setShowSynthetic(e.target.checked)} />
-          <span>Mostra ricorrenze <span className="inline-block px-1 rounded bg-indigo-500/70 text-white">S</span></span>
+          <input type="checkbox" className="accent-indigo-500" checked={showSynthetic} onChange={e => setShowSynthetic(e.target.checked)} />
+          <span>Mostra ricorrenze <span className="inline-block px-1 rounded bg-indigo-500/70 text-inverse">S</span></span>
         </label>
         <div className="flex items-center gap-2 opacity-70">
           <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-green-500/60 inline-block" /> Entrate</span>
           <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-red-500/60 inline-block" /> Uscite</span>
         </div>
       </div>
-      <div className="grid grid-cols-7 gap-2 text-[11px] font-medium uppercase tracking-wide text-muted">{['Lun','Mar','Mer','Gio','Ven','Sab','Dom'].map(d=> <div key={d} className="text-center">{d}</div>)}</div>
+      <div className="grid grid-cols-7 gap-2 text-[11px] font-medium uppercase tracking-wide text-muted">{['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'].map(d => <div key={d} className="text-center">{d}</div>)}</div>
       <div className="grid grid-cols-7 gap-2 flex-1">
-        {grid.map((d,i)=> <DayCell key={d? fmt(d):`pad-${i}`} date={d} bucket={d? buckets.get(fmt(d)) : undefined} onOpenDay={(day)=> { setActiveDay(day); setViewMode('list'); }} fmt={fmt} />)}
+        {grid.map((d, i) => <DayCell key={d ? fmt(d) : `pad-${i}`} date={d} bucket={d ? buckets.get(fmt(d)) : undefined} onOpenDay={(day) => { setActiveDay(day); setViewMode('list'); }} fmt={fmt} />)}
       </div>
       <Confirm
         open={!!activeDay}
-        title={activeDay ? new Date(activeDay).toLocaleDateString(undefined,{ weekday:'long', day:'numeric', month:'long', year:'numeric' }) : ''}
+        title={activeDay ? new Date(activeDay).toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : ''}
         description={activeDay ? 'Riepilogo giornaliero e movimenti.' : null}
         details={activeDay ? <>
           <DayDetails activeDay={activeDay} buckets={buckets} sortBy={sortBy} viewMode={viewMode} setSortBy={setSortBy} setViewMode={setViewMode} getExpenseDate={getExpenseDate} />
           <form onSubmit={submitAdd} className="mt-3 flex flex-col gap-2 text-[11px] p-2 rounded-md glass-panel glass-panel--subtle">
             <div className="flex flex-wrap items-center gap-2">
-              <input className="glass-input glass-input--sm flex-1 min-w-[140px]" placeholder="Descrizione" value={formDesc} onChange={e=>setFormDesc(e.target.value)} />
-              <input type="text" inputMode="decimal" className="glass-input glass-input--sm w-24" placeholder="Importo" value={formAmount} onChange={e=> setFormAmount(e.target.value)} />
-              <select className="glass-input glass-input--sm w-24" value={formDir} onChange={e=>setFormDir(e.target.value as 'in'|'out')}><option value="out">Uscita</option><option value="in">Entrata</option></select>
-              <input className="glass-input glass-input--sm w-28" value={formCat} onChange={e=>setFormCat(e.target.value)} placeholder="Categoria" />
+              <input className="glass-input glass-input--sm flex-1 min-w-[140px]" placeholder="Descrizione" value={formDesc} onChange={e => setFormDesc(e.target.value)} />
+              <input type="text" inputMode="decimal" className="glass-input glass-input--sm w-24" placeholder="Importo" value={formAmount} onChange={e => setFormAmount(e.target.value)} />
+              <select className="glass-input glass-input--sm w-24" value={formDir} onChange={e => setFormDir(e.target.value as 'in' | 'out')}><option value="out">Uscita</option><option value="in">Entrata</option></select>
+              <input className="glass-input glass-input--sm w-28" value={formCat} onChange={e => setFormCat(e.target.value)} placeholder="Categoria" />
               <button type="submit" className="glass-button glass-button--primary glass-button--sm">Aggiungi</button>
             </div>
             <p className="text-[10px] opacity-60">Suggerimento: usa virgola o punto per i decimali.</p>
@@ -221,8 +221,8 @@ export const CalendarView: React.FC = () => {
         confirmLabel="Chiudi"
         cancelLabel=""
         variant="neutral"
-        onCancel={()=> setActiveDay(null)}
-        onConfirm={()=> setActiveDay(null)}
+        onCancel={() => setActiveDay(null)}
+        onConfirm={() => setActiveDay(null)}
       />
       {!(cursor.getFullYear() === new Date().getFullYear() && cursor.getMonth() === new Date().getMonth()) && (
         <div className="sticky bottom-0 mt-2 flex justify-center z-10">

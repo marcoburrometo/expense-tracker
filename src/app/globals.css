@@ -1,3 +1,4 @@
+/* Converted dark theme overrides moved next to base rules below. */
 @import "tailwindcss";
 
 /* Dark mode handled via html.dark class (tailwind.config.js) and [data-theme] attributes (DO NOT TOUCH!) */
@@ -9,6 +10,7 @@ body {
 
 body {
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 /* Ensure root layout can stretch edge-to-edge */
@@ -22,6 +24,43 @@ body {
 .app-main {
   flex: 1 1 auto;
   width: 100%;
+  min-height: 0;
+  /* allow inner scroll areas to size correctly */
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  /* prevent bounce triggering parent */
+  -webkit-overflow-scrolling: touch;
+  scroll-padding-top: 1rem;
+  /* for anchor / focus adjustments under sticky nav */
+}
+
+/* Navbar responsive helpers (fallback in case Tailwind layer order causes leakage) */
+@media (min-width: 640px) {
+  .nav-hamburger {
+    display: none !important;
+  }
+
+  .nav-mobile-panel {
+    display: none !important;
+  }
+}
+
+/* Mobile nav drawer animation */
+@keyframes navSlideFade {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.nav-drawer-anim {
+  animation: navSlideFade .25s cubic-bezier(.16, .8, .24, 1) both;
 }
 
 :root {
@@ -43,6 +82,26 @@ body {
   --text-muted: #475569;
   /* slate-600 */
   --text-muted-strong: #334155;
+
+  /* Semantic text tokens (light theme) - explicitly distinct from dark */
+  --text-primary: #0f172a;
+  /* base foreground */
+  --text-secondary: #334155;
+  /* subdued headings / secondary labels */
+  --text-tertiary: #475569;
+  /* helper text, meta */
+  --text-inverse: #ffffff;
+  /* text on dark accent/surfaces */
+  --text-accent: #1d4ed8;
+  /* actionable / highlight text */
+  --text-danger: #b91c1c;
+  /* error text (slightly darker than bg danger for contrast) */
+  --text-success: #047857;
+  /* success text */
+  --text-warning: #b45309;
+  /* warning text */
+  --text-info: #0c4a6e;
+  /* info text (deep cyan-slate) */
 
   /* Radii & spacing scale */
   --radius-xs: 5px;
@@ -88,116 +147,180 @@ body {
 
 /* Removed unsupported @theme directive; using CSS vars directly */
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #05070b;
-    --foreground: #f1f5f9;
-    --surface-1: rgba(30, 41, 59, 0.65);
-    --surface-2: rgba(30, 41, 59, 0.50);
-    --surface-3: rgba(30, 41, 59, 0.32);
-    --surface-glass: linear-gradient(140deg, var(--surface-1), var(--surface-2));
-    --surface-glass-subtle: linear-gradient(140deg, var(--surface-2), var(--surface-3));
-    --surface-glass-solid: rgba(30, 41, 59, 0.92);
-    --border-glass: rgba(255, 255, 255, 0.12);
-    --border-glass-subtle: rgba(255, 255, 255, 0.08);
-    --border-strong: rgba(255, 255, 255, 0.18);
-    --focus-ring: rgba(56 189 248 / 0.55);
-    /* cyan focus pop in dark */
-    --text-muted: #94a3b8;
-    --text-muted-strong: #cbd5e1;
-    --shadow-elev-1: 0 6px 22px -8px rgba(0, 0, 0, 0.65), 0 2px 8px -2px rgba(0, 0, 0, 0.45);
-    --shadow-elev-2: 0 12px 32px -10px rgba(0, 0, 0, 0.72), 0 5px 16px -8px rgba(0, 0, 0, 0.55);
-  }
+html[data-theme='dark'],
+html.dark {
+  --background: #05070b;
+  --foreground: #f1f5f9;
+  --surface-1: rgba(30, 41, 59, 0.65);
+  --surface-2: rgba(30, 41, 59, 0.50);
+  --surface-3: rgba(30, 41, 59, 0.32);
+  --surface-glass: linear-gradient(140deg, var(--surface-1), var(--surface-2));
+  --surface-glass-subtle: linear-gradient(140deg, var(--surface-2), var(--surface-3));
+  --surface-glass-solid: rgba(30, 41, 59, 0.92);
+  --border-glass: rgba(255, 255, 255, 0.12);
+  --border-glass-subtle: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.18);
+  --focus-ring: rgba(56 189 248 / 0.55);
+  /* cyan focus pop in dark */
+  --text-muted: #94a3b8;
+  --text-muted-strong: #cbd5e1;
+  /* Semantic text tokens (dark theme) - tuned for dark readability */
+  --text-primary: #f1f5f9;
+  /* base foreground */
+  --text-secondary: #cbd5e1;
+  /* secondary labels */
+  --text-tertiary: #94a3b8;
+  /* helper/meta */
+  --text-inverse: #0f172a;
+  /* text on very light surfaces (chips) */
+  --text-accent: #38bdf8;
+  /* highlight (cyan pop) */
+  --text-danger: #f87171;
+  /* error text lighter for dark bg */
+  --text-success: #34d399;
+  /* success text vibrant */
+  --text-warning: #fbbf24;
+  /* warning amber */
+  --text-info: #0ea5e9;
+  /* info cyan */
+  --shadow-elev-1: 0 6px 22px -8px rgba(0, 0, 0, 0.65), 0 2px 8px -2px rgba(0, 0, 0, 0.45);
+  --shadow-elev-2: 0 12px 32px -10px rgba(0, 0, 0, 0.72), 0 5px 16px -8px rgba(0, 0, 0, 0.55);
 }
 
 :where(body) {
-  /* Layer stack: inner glow, cyan tint, base gradient, outer vignette */
-  background:
-    radial-gradient(circle at 32% 22%, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.10) 48%, rgba(255, 255, 255, 0) 65%),
-    /* inner soft glow */
-    linear-gradient(120deg, rgba(209, 243, 255, 0.18), rgba(186, 235, 255, 0.10) 55%, rgba(200, 244, 255, 0.14)),
-    /* subtle cyan tint */
-    linear-gradient(120deg, #edf3f8, #dde9f7 55%, #e6f4f7),
-    /* base */
-    radial-gradient(circle at 50% 65%, rgba(0, 34, 68, 0), rgba(0, 18, 40, 0.06) 55%, rgba(0, 18, 40, 0.10));
-  /* soft vignette */
-  background-attachment: fixed;
-  color: var(--foreground);
+  background: var(--background);
+  color: var(--text-primary, var(--foreground));
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
 /* Explicit overrides when user forces theme (takes precedence over media query) */
 html[data-theme='light'] :where(body) {
-  background:
-    radial-gradient(circle at 32% 22%, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.12) 48%, rgba(255, 255, 255, 0) 65%),
-    linear-gradient(120deg, rgba(209, 243, 255, 0.22), rgba(186, 235, 255, 0.12) 55%, rgba(200, 244, 255, 0.16)),
-    linear-gradient(120deg, #edf3f8, #dde9f7 55%, #e6f4f7),
-    radial-gradient(circle at 50% 65%, rgba(0, 34, 68, 0), rgba(0, 18, 40, 0.07) 55%, rgba(0, 18, 40, 0.11));
-  color: var(--foreground);
+  background: var(--background);
 }
 
 html[data-theme='dark'] :where(body),
 html.dark :where(body) {
-  background: radial-gradient(circle at 70% 30%, rgba(30, 41, 59, 0.7), rgba(2, 6, 23, 0.9)), linear-gradient(140deg, #0f172a, #1e293b 55%, #334155);
-  color: var(--foreground);
+  background: #05070b;
 }
 
-@media (prefers-color-scheme: dark) {
-  :where(body) {
-    background: radial-gradient(circle at 70% 30%, rgba(30, 41, 59, 0.7), rgba(2, 6, 23, 0.9)), linear-gradient(140deg, #0f172a, #1e293b 55%, #334155);
-    background-attachment: fixed;
-  }
+/* Scroll gradient now applied to the internal scrolling container */
+.app-main {
+  background:
+    radial-gradient(circle at 32% 18%, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.06) 52%, rgba(255, 255, 255, 0) 70%),
+    linear-gradient(120deg, rgba(209, 243, 255, 0.18), rgba(186, 235, 255, 0.10) 55%, rgba(200, 244, 255, 0.14)),
+    linear-gradient(120deg, #edf3f8, #dde9f7 55%, #e6f4f7),
+    radial-gradient(circle at 50% 72%, rgba(0, 34, 68, 0), rgba(0, 18, 40, 0.06) 55%, rgba(0, 18, 40, 0.10));
+  background-attachment: local, local, local, local;
+}
+
+html[data-theme='dark'] .app-main,
+html.dark .app-main {
+  background:
+    radial-gradient(circle at 68% 24%, rgba(56, 189, 248, 0.15), rgba(15, 23, 42, 0) 55%),
+    linear-gradient(140deg, rgba(30, 41, 59, 0.65), rgba(15, 23, 42, 0.55) 50%, rgba(15, 23, 42, 0.75)),
+    radial-gradient(circle at 50% 78%, rgba(15, 23, 42, 0), rgba(2, 6, 23, 0.55) 60%, rgba(2, 6, 23, 0.75));
 }
 
 /* Liquid glass utility classes */
+/*
+ * GLASS PANEL SYSTEM
+ * Layers strategy:
+ *  base gradient (mix of surface layers)
+ *  ::before highlight / light bloom
+ *  ::after optional sheen (noise rimosso su richiesta)
+ *  inner ring via box-shadow inset for depth separation
+ * Variants: --subtle (lighter translucency), --solid (opaque), --frosted (strong blur), --elevated (stronger shadow), --flat (reduced blur) 
+ */
 .glass-panel {
   position: relative;
-  background: var(--surface-glass);
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-lg);
-  backdrop-filter: blur(var(--surface-backdrop-blur)) saturate(var(--surface-saturate));
-  -webkit-backdrop-filter: blur(var(--surface-backdrop-blur)) saturate(var(--surface-saturate));
-  box-shadow: var(--shadow-elev-1);
-  transition: box-shadow .4s ease, background .5s ease, border-color .4s ease;
+  background:
+    linear-gradient(145deg, rgba(255 255 255 / 0.42), rgba(255 255 255 / 0.18)) padding-box;
+  backdrop-filter: blur(calc(var(--surface-backdrop-blur) * 0.9)) saturate(var(--surface-saturate));
+  -webkit-backdrop-filter: blur(calc(var(--surface-backdrop-blur) * 0.9)) saturate(var(--surface-saturate));
+  box-shadow:
+    inset 0 0 0 1px rgba(255 255 255 / 0.25),
+    0 4px 14px -6px rgba(0 0 0 / 0.25),
+    0 6px 28px -10px rgba(0 0 0 / 0.22);
+  transition: box-shadow .45s ease, background .55s ease, border-color .4s ease, backdrop-filter .4s ease;
+  overflow: hidden;
+  isolation: isolate;
+  /* create stacking context so z-index inside is predictable */
 }
 
-/* Lighten only in light theme (without touching dark token-driven look) */
-html:not([data-theme='dark']) .glass-panel,
-html[data-theme='light'] .glass-panel {
-  /* Reintroduce "liquid" translucency: brighter but slightly see-through with a faint cool tint */
-  background:
-    radial-gradient(circle at 82% 18%, rgba(255, 255, 255, 0.48), rgba(255, 255, 255, 0) 56%),
-    linear-gradient(135deg,
-      rgba(246, 249, 253, 0.62),
-      rgba(232, 239, 247, 0.38) 52%,
-      rgba(216, 226, 236, 0.36));
-  /* Slightly darker border (less glowing) */
-  border-color: rgba(255, 255, 255, 0.46);
+/* Ensure child content sits above decorative pseudo-elements */
+.glass-panel>* {
+  position: relative;
+  z-index: 2;
+}
+
+html[data-theme='dark'] .glass-panel,
+html.dark .glass-panel {
+  background: linear-gradient(150deg, rgba(51 65 85 / 0.40), rgba(30 41 59 / 0.22));
   box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.32),
-    inset 0 0 16px -6px rgba(146, 196, 255, 0.22),
-    0 3px 8px -3px rgba(0, 0, 0, 0.14),
-    0 4px 18px -8px rgba(0, 0, 0, 0.12),
-    0 1px 2px rgba(0, 0, 0, 0.08);
+    inset 0 0 0 1px rgba(255 255 255 / 0.05),
+    0 6px 18px -8px rgba(0 0 0 / 0.65),
+    0 10px 34px -12px rgba(0 0 0 / 0.55);
+  border-color: rgba(255 255 255 / 0.14);
 }
 
 .glass-panel:hover {
   box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.42),
-    inset 0 0 22px -6px rgba(146, 196, 255, 0.30),
-    0 6px 14px -6px rgba(0, 0, 0, 0.16),
-    0 3px 6px -3px rgba(0, 0, 0, 0.10);
+    inset 0 0 0 1px rgba(255 255 255 / 0.32),
+    0 6px 18px -6px rgba(0 0 0 / 0.28),
+    0 10px 38px -14px rgba(0 0 0 / 0.28);
 }
 
+html[data-theme='dark'] .glass-panel:hover,
+html.dark .glass-panel:hover {
+  box-shadow:
+    inset 0 0 0 1px rgba(255 255 255 / 0.10),
+    0 10px 28px -10px rgba(0 0 0 / 0.70),
+    0 14px 46px -18px rgba(0 0 0 / 0.62);
+}
+
+/* Lighten only in light theme (without touching dark token-driven look) */
+/* Light theme enhancement retains subtle glow */
+html:not([data-theme='dark']) .glass-panel,
+html[data-theme='light'] .glass-panel {
+  border-color: rgba(255 255 255 / 0.55);
+}
+
+/* Panel variants */
 .glass-panel--subtle {
-  background: linear-gradient(140deg, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.74));
-  border-color: var(--border-glass-subtle);
+  backdrop-filter: blur(calc(var(--surface-backdrop-blur) * 0.65)) saturate(calc(var(--surface-saturate) * 0.85));
+}
+
+html[data-theme='dark'] .glass-panel--subtle,
+html.dark .glass-panel--subtle {
+  border-color: rgba(255 255 255 / 0.10);
 }
 
 .glass-panel--solid {
-  background: rgba(255, 255, 255, 0.97);
+  background: var(--surface-glass-solid);
+  backdrop-filter: saturate(120%) blur(14px);
 }
+
+html[data-theme='dark'] .glass-panel--solid,
+html.dark .glass-panel--solid {
+  background: rgba(30 41 59 / 0.92);
+}
+
+.glass-panel--frosted {
+  backdrop-filter: blur(calc(var(--surface-backdrop-blur) * 1.35)) saturate(calc(var(--surface-saturate) * 1.05));
+}
+
+.glass-panel--elevated {
+  box-shadow: 0 10px 34px -12px rgba(0 0 0 / 0.22), 0 18px 54px -20px rgba(0 0 0 / 0.34), inset 0 0 0 1px rgba(255 255 255 / 0.25);
+}
+
+.glass-panel--flat {
+  backdrop-filter: blur(calc(var(--surface-backdrop-blur) * 0.35)) saturate(calc(var(--surface-saturate) * 0.8));
+}
+
+/* Removed old subtle/solid backgrounds (replaced by variant definitions above) */
 
 @media (prefers-reduced-transparency: reduce) {
 
@@ -216,25 +339,71 @@ html[data-theme='light'] .glass-panel {
   }
 }
 
+/* Highlight bloom */
 .glass-panel::before {
   content: "";
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: radial-gradient(circle at 14% 12%, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.12) 44%, transparent 64%);
+  background:
+    radial-gradient(circle at 18% 14%, rgba(255 255 255 / 0.55), rgba(255 255 255 / 0.08) 52%, transparent 68%),
+    radial-gradient(circle at 82% 78%, rgba(255 255 255 / 0.18), transparent 60%);
   pointer-events: none;
   mix-blend-mode: overlay;
+  z-index: 0;
 }
 
+/* Sheen only (noise rimosso) */
 .glass-panel::after {
   content: "";
   position: absolute;
-  inset: 1px;
+  inset: 0;
   border-radius: inherit;
-  background: linear-gradient(160deg, rgba(146, 196, 255, 0.04), rgba(255, 255, 255, 0) 42%, rgba(146, 196, 255, 0.07));
+  background: linear-gradient(160deg, rgba(146 196 255 / 0.12), rgba(255 255 255 / 0) 55%, rgba(146 196 255 / 0.20));
   mix-blend-mode: screen;
   pointer-events: none;
-  opacity: .85;
+  opacity: .55;
+  /* leggermente meno per non velare troppo */
+  z-index: 1;
+  /* sits above bloom but below real content wrapper */
+}
+
+html[data-theme='dark'] .glass-panel::after,
+html.dark .glass-panel::after {
+  background: linear-gradient(160deg, rgba(56 189 248 / 0.16), rgba(255 255 255 / 0) 55%, rgba(56 189 248 / 0.22));
+  opacity: .50;
+}
+
+/* Pure blur: remove decorative bloom / noise */
+.glass-panel--pure::before,
+.glass-panel--pure::after {
+  display: none !important;
+}
+
+/* Foreground content wrapper to guarantee sharp rendering above overlays */
+.glass-panel__content {
+  position: relative;
+  z-index: 2;
+}
+
+/* Accessibility: reduce heavy translucency / noise if user prefers reduced transparency */
+@media (prefers-reduced-transparency: reduce) {
+  .glass-panel {
+    background: var(--surface-glass-fallback, var(--surface-1));
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .glass-panel::before,
+  .glass-panel::after {
+    display: none !important;
+  }
+
+  .glass-panel--frosted {
+    /* neutralize variant extra blur */
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
 }
 
 .glass-divider {
@@ -243,10 +412,9 @@ html[data-theme='light'] .glass-panel {
   margin: 0.75rem 0;
 }
 
-@media (prefers-color-scheme: dark) {
-  .glass-divider {
-    background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0));
-  }
+html[data-theme='dark'] .glass-divider,
+html.dark .glass-divider {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0));
 }
 
 .glass-button {
@@ -326,12 +494,11 @@ html[data-theme='light'] .glass-panel {
   border: 1px solid rgba(255, 255, 255, 0.45);
 }
 
-@media (prefers-color-scheme: dark) {
-  .glass-button--neutral {
-    color: #f1f5f9;
-    background: linear-gradient(145deg, rgba(71, 85, 105, 0.55), rgba(51, 65, 85, 0.30));
-    border: 1px solid rgba(255, 255, 255, 0.08);
-  }
+html[data-theme='dark'] .glass-button--neutral,
+html.dark .glass-button--neutral {
+  color: #f1f5f9;
+  background: linear-gradient(145deg, rgba(71, 85, 105, 0.55), rgba(51, 65, 85, 0.30));
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .glass-button:hover {
@@ -346,21 +513,22 @@ html[data-theme='light'] .glass-panel {
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.25));
 }
 
-@media (prefers-color-scheme: dark) {
-  .glass-button {
-    background: linear-gradient(145deg, var(--surface-1), var(--surface-2));
-    border: 1px solid var(--border-glass-subtle);
-    text-shadow: none;
-    color: #f1f5f9;
-  }
+html[data-theme='dark'] .glass-button,
+html.dark .glass-button {
+  background: linear-gradient(145deg, var(--surface-1), var(--surface-2));
+  border: 1px solid var(--border-glass-subtle);
+  text-shadow: none;
+  color: #f1f5f9;
+}
 
-  .glass-button:hover {
-    background: linear-gradient(145deg, var(--surface-1), var(--surface-1));
-  }
+html[data-theme='dark'] .glass-button:hover,
+html.dark .glass-button:hover {
+  background: linear-gradient(145deg, var(--surface-1), var(--surface-1));
+}
 
-  .glass-button:active {
-    background: linear-gradient(145deg, var(--surface-2), var(--surface-3));
-  }
+html[data-theme='dark'] .glass-button:active,
+html.dark .glass-button:active {
+  background: linear-gradient(145deg, var(--surface-2), var(--surface-3));
 }
 
 .glass-input {
@@ -428,28 +596,30 @@ html[data-theme='light'] .glass-panel {
   letter-spacing: .2px;
 }
 
-@media (prefers-color-scheme: dark) {
-  .glass-input {
-    background: linear-gradient(160deg, rgba(51, 65, 85, 0.65), rgba(30, 41, 59, 0.4));
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    color: #f1f5f9;
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07), 0 1px 2px rgba(0, 0, 0, 0.6);
-  }
+html[data-theme='dark'] .glass-input,
+html.dark .glass-input {
+  background: linear-gradient(160deg, rgba(51, 65, 85, 0.65), rgba(30, 41, 59, 0.4));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #f1f5f9;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07), 0 1px 2px rgba(0, 0, 0, 0.6);
+}
 
-  .glass-input:focus {
-    border-color: var(--accent-cyan);
-    background: linear-gradient(145deg, rgba(71, 85, 105, 0.82), rgba(51, 65, 85, 0.52));
-    box-shadow: 0 0 0 3px rgba(8 145 178 / 0.45);
-  }
+html[data-theme='dark'] .glass-input:focus,
+html.dark .glass-input:focus {
+  border-color: var(--accent-cyan);
+  background: linear-gradient(145deg, rgba(71, 85, 105, 0.82), rgba(51, 65, 85, 0.52));
+  box-shadow: 0 0 0 3px rgba(8 145 178 / 0.45);
+}
 
-  .glass-input:hover {
-    border-color: rgba(148, 163, 184, 0.5);
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12), 0 2px 4px -2px rgba(0, 0, 0, 0.65);
-  }
+html[data-theme='dark'] .glass-input:hover,
+html.dark .glass-input:hover {
+  border-color: rgba(148, 163, 184, 0.5);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12), 0 2px 4px -2px rgba(0, 0, 0, 0.65);
+}
 
-  .glass-input::placeholder {
-    color: rgba(203, 213, 225, 0.55);
-  }
+html[data-theme='dark'] .glass-input::placeholder,
+html.dark .glass-input::placeholder {
+  color: rgba(203, 213, 225, 0.55);
 }
 
 /* Button small & state variants */
@@ -491,21 +661,22 @@ html[data-theme='light'] .glass-panel {
   color: #312e81;
 }
 
-@media (prefers-color-scheme: dark) {
-  .badge-template {
-    background: linear-gradient(145deg, #92400e, #b45309);
-    color: #fff;
-  }
+html[data-theme='dark'] .badge-template,
+html.dark .badge-template {
+  background: linear-gradient(145deg, #92400e, #b45309);
+  color: #fff;
+}
 
-  .badge-instance {
-    background: linear-gradient(145deg, #047857, #059669);
-    color: #d1fae5;
-  }
+html[data-theme='dark'] .badge-instance,
+html.dark .badge-instance {
+  background: linear-gradient(145deg, #047857, #059669);
+  color: #d1fae5;
+}
 
-  .badge-future {
-    background: linear-gradient(145deg, #4338ca, #4f46e5);
-    color: #eef2ff;
-  }
+html[data-theme='dark'] .badge-future,
+html.dark .badge-future {
+  background: linear-gradient(145deg, #4338ca, #4f46e5);
+  color: #eef2ff;
 }
 
 /* Table refinement */
@@ -540,14 +711,14 @@ html[data-theme='light'] .glass-panel {
   outline-offset: -2px;
 }
 
-@media (prefers-color-scheme: dark) {
-  .glass-table tbody tr:nth-child(even) {
-    background: linear-gradient(145deg, rgba(51, 65, 85, 0.55), rgba(51, 65, 85, 0.25));
-  }
+html[data-theme='dark'] .glass-table tbody tr:nth-child(even),
+html.dark .glass-table tbody tr:nth-child(even) {
+  background: linear-gradient(145deg, rgba(51, 65, 85, 0.55), rgba(51, 65, 85, 0.25));
+}
 
-  .glass-table tbody tr:hover {
-    background: linear-gradient(145deg, rgba(71, 85, 105, 0.75), rgba(51, 65, 85, 0.35));
-  }
+html[data-theme='dark'] .glass-table tbody tr:hover,
+html.dark .glass-table tbody tr:hover {
+  background: linear-gradient(145deg, rgba(71, 85, 105, 0.75), rgba(51, 65, 85, 0.35));
 }
 
 /* Heading style */
@@ -563,10 +734,9 @@ input.glass-input:-webkit-autofill {
   -webkit-box-shadow: 0 0 0 30px rgba(255, 255, 255, 0.4) inset !important;
 }
 
-@media (prefers-color-scheme: dark) {
-  input.glass-input:-webkit-autofill {
-    -webkit-box-shadow: 0 0 0 30px rgba(51, 65, 85, 0.6) inset !important;
-  }
+html[data-theme='dark'] input.glass-input:-webkit-autofill,
+html.dark input.glass-input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 30px rgba(51, 65, 85, 0.6) inset !important;
 }
 
 /* Subtle focus ring override */
@@ -574,11 +744,10 @@ input.glass-input:-webkit-autofill {
   outline-color: var(--focus-ring);
 }
 
-@media (prefers-color-scheme: dark) {
-  .glass-badge {
-    background: linear-gradient(145deg, rgba(51, 65, 85, 0.6), rgba(30, 41, 59, 0.35));
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
+html[data-theme='dark'] .glass-badge,
+html.dark .glass-badge {
+  background: linear-gradient(145deg, rgba(51, 65, 85, 0.6), rgba(30, 41, 59, 0.35));
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .glass-scroll::-webkit-scrollbar {
@@ -596,15 +765,15 @@ input.glass-input:-webkit-autofill {
   border: 1px solid rgba(255, 255, 255, 0.5);
 }
 
-@media (prefers-color-scheme: dark) {
-  .glass-scroll::-webkit-scrollbar-track {
-    background: linear-gradient(145deg, rgba(51, 65, 85, 0.55), rgba(51, 65, 85, 0.25));
-  }
+html[data-theme='dark'] .glass-scroll::-webkit-scrollbar-track,
+html.dark .glass-scroll::-webkit-scrollbar-track {
+  background: linear-gradient(145deg, rgba(51, 65, 85, 0.55), rgba(51, 65, 85, 0.25));
+}
 
-  .glass-scroll::-webkit-scrollbar-thumb {
-    background: linear-gradient(145deg, rgba(71, 85, 105, 0.75), rgba(51, 65, 85, 0.45));
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
+html[data-theme='dark'] .glass-scroll::-webkit-scrollbar-thumb,
+html.dark .glass-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(145deg, rgba(71, 85, 105, 0.75), rgba(51, 65, 85, 0.45));
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* Sheen animation removed per design request */
@@ -622,12 +791,11 @@ input.glass-input:-webkit-autofill {
   overflow: hidden;
 }
 
-@media (prefers-color-scheme: dark) {
-  .glass-stat {
-    background: linear-gradient(140deg, rgba(51, 65, 85, 0.55), rgba(30, 41, 59, 0.35));
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    box-shadow: 0 6px 16px -4px rgba(0, 0, 0, 0.55), 0 2px 4px -2px rgba(0, 0, 0, 0.45);
-  }
+html[data-theme='dark'] .glass-stat,
+html.dark .glass-stat {
+  background: linear-gradient(140deg, rgba(51, 65, 85, 0.55), rgba(30, 41, 59, 0.35));
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 6px 16px -4px rgba(0, 0, 0, 0.55), 0 2px 4px -2px rgba(0, 0, 0, 0.45);
 }
 
 .glass-stat::after {
@@ -709,10 +877,9 @@ input.glass-input:-webkit-autofill {
   animation: shimmer 1.4s linear infinite;
 }
 
-@media (prefers-color-scheme: dark) {
-  .skeleton {
-    background: linear-gradient(90deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
-  }
+html[data-theme='dark'] .skeleton,
+html.dark .skeleton {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
 }
 
 @keyframes shimmer {
@@ -732,6 +899,43 @@ html[data-contrast='high'] .skeleton {
 /* Muted text utility (token-based) */
 .text-muted {
   color: var(--text-muted) !important;
+}
+
+/* Semantic text utilities */
+.text-primary {
+  color: var(--text-primary) !important;
+}
+
+.text-secondary {
+  color: var(--text-secondary) !important;
+}
+
+.text-tertiary {
+  color: var(--text-tertiary) !important;
+}
+
+.text-accent {
+  color: var(--text-accent) !important;
+}
+
+.text-danger {
+  color: var(--text-danger) !important;
+}
+
+.text-success {
+  color: var(--text-success) !important;
+}
+
+.text-warning {
+  color: var(--text-warning) !important;
+}
+
+.text-info {
+  color: var(--text-info) !important;
+}
+
+.text-inverse {
+  color: var(--text-inverse) !important;
 }
 
 /* Modal + overlay */

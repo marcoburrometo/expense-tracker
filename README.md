@@ -133,6 +133,44 @@ src/
 * Theme forced via `data-theme` + `prefers-color-scheme` fallback
 * No custom server calls: easy future migration to APIs / Functions
 
+### GlassPanel Variants
+
+Reusable component: `GlassPanel` (`src/components/GlassPanel.tsx`) for consistent glass surfaces. Variants map to utility class stacks defined in `globals.css`:
+
+Variant semantics:
+
+* `default` – baseline translucent panel (blur, soft border, ambient light). Use for generic containers.
+* `pure` – higher clarity (less tint) for primary content areas where underlying background color should subtly influence but not overpower.
+* `subtle` – slightly more matte / lower elevation for nested or list items inside a primary panel.
+* `flat` – removes extra shadow depth; pair with `pure` for navigation bars → use composite `flat-pure`.
+* `flat-pure` – explicit composite of `flat` + `pure` (navbar / horizontal chrome) to avoid manual multi‑class repetition.
+* `frosted` – stronger diffusion (heavier backdrop blur) for modal surfaces needing separation while retaining context.
+* `elevated` – adds a more pronounced shadow / layered look for focus blocks (hero metrics, spotlight cards).
+* `solid` – near‑opaque fallback (e.g. print, small chips where legibility is paramount) – minimal translucency.
+
+Guidelines:
+
+* Prefer `pure` at layout breakpoints for main panels; inside them, use `subtle` for repeated rows / list items.
+* Keep nesting shallow: avoid more than two stacked glass surfaces to limit GPU blur cost.
+* Tooltip / ephemeral UI: hand‑tune lightweight styles (do not always use `GlassPanel`) for performance + legibility.
+* If a combination of two variants is needed, first consider whether an explicit composite should be added (like `flat-pure`) instead of passing multiple class names around.
+* Use `noPadding` prop and manage spacing externally when composing complex flex/grid layouts.
+
+Example:
+
+```tsx
+<GlassPanel variant="pure" className="p-4">
+	<h2>Bilancio</h2>
+	<ul className="space-y-2">
+		{rows.map(r => (
+			<GlassPanel as="li" key={r.id} variant="subtle" className="p-2">
+				{r.label}
+			</GlassPanel>
+		))}
+	</ul>
+</GlassPanel>
+```
+
 ## License
 
 Internal/demo project. Add a LICENSE if needed.
