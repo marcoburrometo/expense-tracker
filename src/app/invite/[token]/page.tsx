@@ -1,11 +1,13 @@
 "use client";
 import React from 'react';
 import { acceptInviteByToken, getInviteByToken } from '@/lib/workspaceAdapter';
+import { useWorkspace } from '@/state/WorkspaceContext';
 import { useAuth } from '@/state/AuthContext';
 
 export default function InviteLanding({ params }: { params: { token: string } }) {
     const { token } = params;
     const { user } = useAuth();
+    const { refreshWorkspaces } = useWorkspace();
     const [status, setStatus] = React.useState<'loading' | 'ready' | 'accepted' | 'error' | 'expired'>('loading');
     const [message, setMessage] = React.useState('');
 
@@ -29,9 +31,13 @@ export default function InviteLanding({ params }: { params: { token: string } })
     const onAccept = async () => {
         if (!user) { setMessage('Devi autenticarti prima di accettare'); return; }
         try {
+            const inv = await getInviteByToken(token);
+            if(!inv) { setStatus('error'); setMessage('Invito non trovato'); return; }
             await acceptInviteByToken(token, user.uid, user.email || '');
+            // Refresh workspace list and activate the joined workspace
+            await refreshWorkspaces(inv.workspaceId);
             setStatus('accepted');
-            setMessage('Invito accettato');
+            setMessage('Invito accettato, workspace attivato');
         } catch (e: unknown) {
             const msg = e instanceof Error ? e.message : 'Errore accettazione invito';
             setStatus('error');

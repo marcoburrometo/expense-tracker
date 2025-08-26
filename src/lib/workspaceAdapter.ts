@@ -2,7 +2,7 @@
 // Keeps functions isolated so UI can remain mostly unchanged until sync wiring.
 
 import { getFirebaseApp } from '@/lib/firebaseClient';
-import { getFirestore, collection, doc, getDoc, setDoc, addDoc, serverTimestamp, query, where, getDocs, runTransaction } from 'firebase/firestore';
+import { getFirestore, collection, doc, getDoc, setDoc, addDoc, serverTimestamp, query, where, getDocs, runTransaction, deleteDoc } from 'firebase/firestore';
 import { Workspace, WorkspaceTrackerDocument, TrackerState, INITIAL_STATE, WorkspaceInvite, AuditEntry } from '@/domain/types';
 
 const WS_COLLECTION = 'workspaces';
@@ -115,6 +115,20 @@ export async function createWorkspaceInvite(workspaceId: string, email: string, 
   return { id: ref.id, workspaceId, email: lowerEmail, invitedBy, status: 'pending', createdAt: now, updatedAt: now, token, expiresAt };
 }
 
+// Wrapper returning duplicate info (UI convenience)
+export async function createWorkspaceInviteWithInfo(workspaceId: string, email: string, invitedBy: string): Promise<{ invite: WorkspaceInvite; duplicated: boolean }>{
+  const col = collection(db(), WS_INVITES_COLLECTION);
+  const lowerEmail = email.toLowerCase();
+  const existingQ = query(col, where('workspaceId','==', workspaceId), where('email','==', lowerEmail), where('status','==','pending'));
+  const existingSnap = await getDocs(existingQ);
+  if(!existingSnap.empty) {
+    const d = existingSnap.docs[0];
+    return { invite: { id: d.id, ...(d.data() as Omit<WorkspaceInvite,'id'>) }, duplicated: true };
+  }
+  const invite = await createWorkspaceInvite(workspaceId, email, invitedBy);
+  return { invite, duplicated: false };
+}
+
 function cryptoRandomToken(): string {
   // Prefer crypto.randomUUID if available
   const c = (globalThis as unknown as { crypto?: { randomUUID?: () => string; getRandomValues?: (arr: Uint8Array)=>void } }).crypto;
@@ -180,7 +194,7 @@ export async function acceptInvite(inviteId: string, currentUid: string) {
       wsData.updatedAt = new Date().toISOString();
       tx.set(wsRef, wsData);
     }
-    tx.set(ref, { ...data, status: 'accepted', updatedAt: new Date().toISOString() });
+    tx.set(ref, { ...data, status: 'accepted', acceptedUserId: currentUid, updatedAt: new Date().toISOString() });
   });
   log(data.workspaceId, currentUid, 'invite.accept');
 }
@@ -193,6 +207,48 @@ export async function declineInvite(inviteId: string) {
   if(data.status !== 'pending') return;
   await setDoc(ref, { ...data, status: 'declined', updatedAt: new Date().toISOString() }, { merge: true });
   log(data.workspaceId, null, 'invite.decline');
+}
+
+export async function deleteWorkspaceInvite(inviteId: string, actorId: string) {
+  const ref = doc(db(), WS_INVITES_COLLECTION, inviteId);
+  const snap = await getDoc(ref);
+  if(!snap.exists()) return;
+  const data = snap.data() as WorkspaceInvite;
+  // Only allow deletion of pending invites; accepted/declined/expired retained for audit
+  if(data.status !== 'pending') return;
+  await deleteDoc(ref);
+  log(data.workspaceId, actorId, 'invite.delete', { email: data.email });
+}
+
+// Remove a member from a workspace (used when deleting an accepted invite)
+export async function removeWorkspaceMember(workspaceId: string, memberUid: string) {
+  const wsRef = doc(db(), WS_COLLECTION, workspaceId);
+  await runTransaction(db(), async (tx) => {
+    const wsSnap = await tx.get(wsRef);
+    if(!wsSnap.exists()) throw new Error('Workspace missing');
+    const wsData = wsSnap.data() as Workspace;
+    const idx = wsData.memberIds.indexOf(memberUid);
+    if(idx === -1) return; // already removed
+    wsData.memberIds.splice(idx,1);
+    wsData.updatedAt = new Date().toISOString();
+    tx.set(wsRef, wsData);
+  });
+  log(workspaceId, memberUid, 'workspace.removeMember');
+}
+
+// Delete accepted invite and remove membership (owner or self-triggered)
+export async function removeAcceptedInvite(inviteId: string, actorId: string) {
+  const ref = doc(db(), WS_INVITES_COLLECTION, inviteId);
+  const snap = await getDoc(ref);
+  if(!snap.exists()) return;
+  const data = snap.data() as WorkspaceInvite;
+  if(data.status !== 'accepted') return; // only accepted case here
+  // Determine which member to remove: the user who accepted (preferred), fallback to actor if matches invite email
+  const targetUid = data.acceptedUserId || actorId;
+  await removeWorkspaceMember(data.workspaceId, targetUid);
+  // Delete invite doc for cleanup (optional: could mark removed)
+  await deleteDoc(ref);
+  log(data.workspaceId, actorId, 'invite.removeAccepted', { email: data.email, removedUid: targetUid });
 }
 
 export async function listAuditEntries(workspaceId: string, limit = 50): Promise<AuditEntry[]> {

@@ -7,7 +7,8 @@ import { useTracker } from '@/state/TrackerContext';
 import { INITIAL_STATE, TrackerState } from '@/domain/types';
 import { useWorkspace } from '@/state/WorkspaceContext';
 import { useAuth } from '@/state/AuthContext';
-import { createWorkspaceInvite, listWorkspaceInvites, listAuditEntries, acceptInvite, declineInvite, listUserIncomingInvites, getWorkspace } from '@/lib/workspaceAdapter';
+import { createWorkspaceInviteWithInfo, listWorkspaceInvites, listAuditEntries, acceptInvite, declineInvite, listUserIncomingInvites, getWorkspace, deleteWorkspaceInvite, removeAcceptedInvite } from '@/lib/workspaceAdapter';
+import Confirm from '@/components/Confirm';
 import React from 'react';
 
 export default function Config() {
@@ -93,13 +94,17 @@ export default function Config() {
     const email = inviteEmailRef.current.value.trim();
     if (!email) return;
     try {
-      await createWorkspaceInvite(activeWorkspaceId, email, user.uid);
+      const { duplicated } = await createWorkspaceInviteWithInfo(activeWorkspaceId, email, user.uid);
       inviteEmailRef.current.value = '';
       const data = await listWorkspaceInvites(activeWorkspaceId);
       setInvites(data);
+      setToast(duplicated ? 'Invito già esistente (link aggiornato).' : 'Invito creato.');
     } catch { alert('Errore invito'); }
   };
   const [toast, setToast] = React.useState<string>('');
+  const [confirmOpen, setConfirmOpen] = React.useState(false);
+  const [confirmTarget, setConfirmTarget] = React.useState<Invite | null>(null);
+  const [confirmMode, setConfirmMode] = React.useState<'delete-pending' | 'remove-accepted' | null>(null);
   React.useEffect(() => {
     if (!toast) return;
     const t = setTimeout(() => setToast(''), 3000);
@@ -154,6 +159,8 @@ export default function Config() {
                   const canAct = user?.email?.toLowerCase() === inv.email.toLowerCase() && inv.status === 'pending';
                   const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
                   const inviteUrl = inv.token ? `${baseUrl}/invite/${inv.token}` : '';
+                  const canDeletePending = user && (user.uid === inv.invitedBy || user.uid === activeWorkspace?.ownerId) && inv.status === 'pending';
+                  const canRemoveAccepted = user && inv.status === 'accepted' && (user.uid === activeWorkspace?.ownerId || user.email?.toLowerCase() === inv.email.toLowerCase());
                   return (
                     <li key={inv.id} className="flex justify-between items-center gap-2 py-1 border-b border-white/30 dark:border-white/10 last:border-none">
                       <div className="flex flex-col flex-1 min-w-0">
@@ -168,7 +175,7 @@ export default function Config() {
                         )}
                       </div>
                       <span className="text-xs px-2 py-0.5 rounded bg-white/40 dark:bg-white/10 capitalize">{inv.status}</span>
-                      {canAct && (
+                       {canAct && (
                         <div className="flex gap-1">
                           <button
                             onClick={async () => { await acceptInvite(inv.id, user!.uid); const data = await listWorkspaceInvites(activeWorkspaceId!); setInvites(data as Invite[]); }}
@@ -179,6 +186,13 @@ export default function Config() {
                             className="glass-button glass-button--xs"
                           >Rifiuta</button>
                         </div>
+                      )}
+                      {(canDeletePending || canRemoveAccepted) && (
+                        <button
+                          onClick={() => { setConfirmTarget(inv); setConfirmMode(canDeletePending ? 'delete-pending':'remove-accepted'); setConfirmOpen(true); }}
+                          className="glass-button glass-button--xs"
+                          title={canDeletePending ? 'Elimina invito' : 'Rimuovi membro'}
+                        >✕</button>
                       )}
                     </li>
                   );
@@ -243,6 +257,30 @@ export default function Config() {
           {toast}
         </div>
       )}
+      <Confirm
+        open={confirmOpen}
+        title={confirmMode === 'remove-accepted' ? 'Rimuovere il membro dal workspace?' : 'Eliminare questo invito?'}
+        description={confirmMode === 'remove-accepted' ? 'Il membro perderà accesso al workspace (può essere reinvitato).' : 'Questa azione rimuove l\'invito. Potrai inviarne uno nuovo in seguito.'}
+        confirmLabel={confirmMode === 'remove-accepted' ? 'Rimuovi' : 'Elimina'}
+        variant={confirmMode === 'remove-accepted' ? 'danger' : 'neutral'}
+        onCancel={() => { setConfirmOpen(false); setConfirmTarget(null); setConfirmMode(null); }}
+        onConfirm={async () => {
+          if(!confirmTarget || !user || !activeWorkspaceId) return;
+          try {
+            if(confirmMode === 'delete-pending') {
+              await deleteWorkspaceInvite(confirmTarget.id, user.uid);
+              setToast('Invito eliminato');
+            } else if(confirmMode === 'remove-accepted') {
+              await removeAcceptedInvite(confirmTarget.id, user.uid);
+              setToast('Membro rimosso');
+            }
+            const data = await listWorkspaceInvites(activeWorkspaceId);
+            setInvites(data);
+          } finally {
+            setConfirmOpen(false); setConfirmTarget(null); setConfirmMode(null);
+          }
+        }}
+      />
     </>
   );
 }

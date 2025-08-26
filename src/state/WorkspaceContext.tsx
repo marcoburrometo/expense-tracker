@@ -12,6 +12,7 @@ interface WorkspaceContextValue {
   loading: boolean;
   switchWorkspace: (id: string) => Promise<void>;
   createNewWorkspace: (name: string) => Promise<void>;
+  refreshWorkspaces: (activateId?: string) => Promise<void>;
   cloudSyncEnabled: boolean; // true when user logged & workspace selected
   saving: boolean;
   lastError: string | null;
@@ -110,6 +111,20 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     } finally { setLoading(false); }
   }, [user]);
 
+  const refreshWorkspaces = useCallback(async (activateId?: string) => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      const list = await listUserWorkspaces(user.uid);
+      setWorkspaces(list);
+      if(activateId && list.some(w => w.id === activateId)) {
+        setActiveWorkspaceId(activateId);
+      } else if(!activeWorkspaceId && list.length) {
+        setActiveWorkspaceId(list[0].id);
+      }
+    } finally { setLoading(false); }
+  }, [user, activeWorkspaceId]);
+
   const value = useMemo(() => ({
     workspaces,
     activeWorkspaceId,
@@ -117,10 +132,11 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     loading,
     switchWorkspace,
     createNewWorkspace,
+    refreshWorkspaces,
     cloudSyncEnabled: !!(user && activeWorkspaceId),
     saving,
     lastError,
-  }), [workspaces, activeWorkspaceId, loading, switchWorkspace, createNewWorkspace, user, saving, lastError]);
+  }), [workspaces, activeWorkspaceId, loading, switchWorkspace, createNewWorkspace, refreshWorkspaces, user, saving, lastError]);
 
   return <WorkspaceContext.Provider value={value}>{children}</WorkspaceContext.Provider>;
 };
