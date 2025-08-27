@@ -4,6 +4,7 @@ import { GlassPanel } from './GlassPanel';
 import { useTracker } from '@/state/TrackerContext';
 import { mergeCategories } from '@/domain/categories';
 import { useI18n } from '@/state/I18nContext';
+import { RadioGroup } from './forms/RadioGroup';
 
 export const ExpenseForm: React.FC = () => {
   const { addOneOff, addRecurringTemplate, expenses } = useTracker();
@@ -69,14 +70,17 @@ export const ExpenseForm: React.FC = () => {
   return (
     <GlassPanel as="form" onSubmit={onSubmit} variant="pure" className="space-y-3 p-5 max-w-md w-full">
       <h2 className="font-semibold text-lg tracking-tight">{t('form.expense.new')}</h2>
-      <div className="flex gap-4 text-xs md:text-sm">
-        <label className="flex items-center gap-1">
-          <input type="radio" value="oneoff" checked={mode === 'oneoff'} onChange={() => setMode('oneoff')} /> {t('form.expense.oneoff')}
-        </label>
-        <label className="flex items-center gap-1">
-          <input type="radio" value="recurring" checked={mode === 'recurring'} onChange={() => setMode('recurring')} /> {t('form.expense.recurring')}
-        </label>
-      </div>
+      <RadioGroup
+        name="expense-mode"
+        value={mode}
+        onChange={v => setMode(v as 'oneoff' | 'recurring')}
+        options={[
+          { value: 'oneoff', label: t('form.expense.oneoff') },
+          { value: 'recurring', label: t('form.expense.recurring') },
+        ]}
+        ariaLabel={t('form.expense.new')}
+        className="mt-1"
+      />
       <div className="grid grid-cols-2 gap-3 text-sm">
         <div className="col-span-2">
           <input placeholder={t('form.description')} value={description} onChange={e => setDescription(e.target.value)} onBlur={() => markTouched('description')} className={descClass} aria-invalid={!!errors.description && touched.description} />
@@ -105,12 +109,19 @@ export const ExpenseForm: React.FC = () => {
           </select>
         </div>
         {mode === 'recurring' && (
-          <div>
-            <select value={frequency} onChange={e => setFrequency(e.target.value as 'weekly' | 'monthly' | 'yearly')} className="w-full glass-input">
-              <option value="weekly">{t('form.frequency.weekly')}</option>
-              <option value="monthly">{t('form.frequency.monthly')}</option>
-              <option value="yearly">{t('form.frequency.yearly')}</option>
-            </select>
+          <div className="col-span-2">
+            <RadioGroup
+              name="frequency"
+              value={frequency}
+              onChange={v => setFrequency(v as 'weekly' | 'monthly' | 'yearly')}
+              options={[
+                { value: 'weekly', label: t('form.frequency.weekly') },
+                { value: 'monthly', label: t('form.frequency.monthly') },
+                { value: 'yearly', label: t('form.frequency.yearly') },
+              ]}
+              ariaLabel={t('form.frequency.monthly')}
+              className="mt-1"
+            />
           </div>
         )}
       </div>

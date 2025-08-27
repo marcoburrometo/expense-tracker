@@ -1,8 +1,10 @@
 "use client";
 import React from 'react';
 import { useI18n } from '@/state/I18nContext';
+import { useCurrencyFormatter } from '@/lib/format';
 import { AnyExpense } from '@/domain/types';
 import { DayBucket, isSyntheticInstance } from '@/components/calendarTypes';
+import { CycleToggle } from '../forms/ToggleSwitch';
 
 export interface DayDetailsProps {
   activeDay: string;
@@ -16,6 +18,7 @@ export interface DayDetailsProps {
 
 export const DayDetails: React.FC<DayDetailsProps> = ({ activeDay, buckets, sortBy, viewMode, setSortBy, setViewMode, getExpenseDate }) => {
   const { t } = useI18n();
+  const format = useCurrencyFormatter({ signDisplay: 'always' });
   const bucket = buckets.get(activeDay);
   if (!bucket) return <div className="text-[11px] opacity-60">{t('calendar.none')}</div>;
   const totalIn = bucket.in;
@@ -32,24 +35,30 @@ export const DayDetails: React.FC<DayDetailsProps> = ({ activeDay, buckets, sort
   return (
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap items-center gap-3 text-[11px]">
-        <span>{t('calendar.incomeTotal')} <strong className="text-success">€ {totalIn.toFixed(2)}</strong></span>
-        <span>{t('calendar.expenseTotal')} <strong className="text-danger">€ {totalOut.toFixed(2)}</strong></span>
-        <span>{t('stats.balance')} <strong className={net >= 0 ? 'text-success' : 'text-danger'}>{net >= 0 ? '+' : '-'}€ {Math.abs(net).toFixed(2)}</strong></span>
-        <div className="ml-auto flex gap-1">
-          <button
-            type="button"
-            onClick={() => setSortBy(s => s === 'date' ? 'amount' : 'date')}
-            className="glass-button glass-button--xs glass-button--anim micro-press-anim"
-            data-active={sortBy === 'amount'}
-            aria-label="Toggle sort"
-          >{t('mov.sort')}: {sortBy === 'date' ? t('mov.col.date') : t('mov.col.amount')}</button>
-          <button
-            type="button"
-            onClick={() => setViewMode(v => v === 'list' ? 'category' : 'list')}
-            className="glass-button glass-button--xs glass-button--anim micro-press-anim"
-            data-active={viewMode === 'category'}
-            aria-label={t('calendar.viewMode')}
-          >{t('calendar.viewMode')}: {viewMode === 'list' ? t('calendar.view.list') : t('calendar.view.category')}</button>
+        <span>{t('calendar.incomeTotal')} <strong className="text-success">{format(totalIn)}</strong></span>
+        <span>{t('calendar.expenseTotal')} <strong className="text-danger">{format(-totalOut).replace('-', '')}</strong></span>
+        <span>{t('stats.balance')} <strong className={net >= 0 ? 'text-success' : 'text-danger'}>{format(net)}</strong></span>
+        <div className="ml-auto flex gap-2">
+          <CycleToggle
+            value={sortBy}
+            onChange={v => setSortBy(v as 'date' | 'amount')}
+            options={[
+              { value: 'date', label: t('mov.col.date'), title: t('mov.sort') },
+              { value: 'amount', label: t('mov.col.amount'), title: t('mov.sort') },
+            ]}
+            ariaLabel={t('mov.sort')}
+            size="xs"
+          />
+          <CycleToggle
+            value={viewMode}
+            onChange={v => setViewMode(v as 'list' | 'category')}
+            options={[
+              { value: 'list', label: t('calendar.view.list'), title: t('calendar.viewMode') },
+              { value: 'category', label: t('calendar.view.category'), title: t('calendar.viewMode') },
+            ]}
+            ariaLabel={t('calendar.viewMode')}
+            size="xs"
+          />
         </div>
       </div>
       {viewMode === 'list' ? (
@@ -62,7 +71,7 @@ export const DayDetails: React.FC<DayDetailsProps> = ({ activeDay, buckets, sort
                   {e.description} <span className="opacity-50">[{e.category}]</span>
                   {synthetic && <span className="ml-1 inline-block px-1 rounded bg-indigo-500/70 text-[9px] text-white align-middle" title={t('calendar.synthetic')}>S</span>}
                 </span>
-                <span className={`font-mono ${e.direction === 'in' ? 'text-success' : 'text-danger'}`}>{e.direction === 'in' ? '+' : '-'}€ {e.amount.toFixed(2)}</span>
+                <span className={`font-mono ${e.direction === 'in' ? 'text-success' : 'text-danger'}`}>{format(e.direction === 'in' ? e.amount : -e.amount)}</span>
               </div>
             );
           })}
@@ -76,7 +85,7 @@ export const DayDetails: React.FC<DayDetailsProps> = ({ activeDay, buckets, sort
               <div key={cat} className="relative p-2 rounded-md glass-panel glass-panel--subtle">
                 <div className="flex justify-between text-[11px] mb-1">
                   <span className="font-medium truncate">{cat} <span className="opacity-50">({val.count})</span></span>
-                  <span className={`font-mono ${netCat >= 0 ? 'text-success' : 'text-danger'}`}>{netCat >= 0 ? '+' : '-'}€ {Math.abs(netCat).toFixed(2)}</span>
+                  <span className={`font-mono ${netCat >= 0 ? 'text-success' : 'text-danger'}`}>{format(netCat)}</span>
                 </div>
                 <div className="h-1.5 w-full rounded bg-neutral-300/40 dark:bg-neutral-700/40 overflow-hidden flex">
                   <div style={{ width: mag === 0 ? 0 : (val.in / mag) * 100 + '%' }} className="bg-green-500/70" />

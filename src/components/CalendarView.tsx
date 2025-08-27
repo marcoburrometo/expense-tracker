@@ -7,6 +7,8 @@ import { DayCell } from '@/components/calendar/DayCell';
 import { DayDetails } from '@/components/calendar/DayDetails';
 import { Confirm } from '@/components/Confirm';
 import { useI18n } from '@/state/I18nContext';
+import { useCurrencyFormatter } from '@/lib/format';
+import { ToggleSwitch, CycleToggle } from './forms/ToggleSwitch';
 
 function startOfMonth(d: Date) { return new Date(d.getFullYear(), d.getMonth(), 1); }
 function endOfMonth(d: Date) { return new Date(d.getFullYear(), d.getMonth() + 1, 0); }
@@ -26,6 +28,7 @@ export const CalendarView: React.FC = () => {
   const [density, setDensity] = useState<'normal' | 'compact'>('normal');
   const [heatmap, setHeatmap] = useState<boolean>(false);
   const { t } = useI18n();
+  const format = useCurrencyFormatter();
   const monthStart = startOfMonth(cursor);
   const monthEnd = endOfMonth(cursor);
 
@@ -177,17 +180,35 @@ export const CalendarView: React.FC = () => {
           <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/30 dark:bg-indigo-500/25 border border-indigo-500/50 text-indigo-700 dark:text-indigo-200 shadow-sm">{t('nav.calendar')}</span>
         </h2>
         <div className="text-xs text-muted flex gap-3 items-center">
-          <span>{t('calendar.incomeTotal')}: <span className="text-success">€ {Array.from(buckets.values()).reduce((s, b) => s + b.in, 0).toFixed(2)}</span></span>
-          <span>{t('calendar.expenseTotal')}: <span className="text-danger">€ {Array.from(buckets.values()).reduce((s, b) => s + b.out, 0).toFixed(2)}</span></span>
-          <button type="button" onClick={() => setDensity(d => d === 'normal' ? 'compact' : 'normal')} className="glass-button glass-button--xs" aria-label="Toggle densità calendario">{t('calendar.density')}: {density === 'normal' ? t('calendar.density.normal') : t('calendar.density.compact')}</button>
-          <button type="button" onClick={() => setHeatmap(h => !h)} className="glass-button glass-button--xs" aria-label={heatmap ? t('calendar.heatmap.disable') : t('calendar.heatmap.enable')}>{t('calendar.heatmap')}: {heatmap ? 'ON' : 'OFF'}</button>
+          <span>{t('calendar.incomeTotal')}: <span className="text-success">{format(Array.from(buckets.values()).reduce((s, b) => s + b.in, 0))}</span></span>
+          <span>{t('calendar.expenseTotal')}: <span className="text-danger">{format(-Array.from(buckets.values()).reduce((s, b) => s + b.out, 0)).replace('-', '')}</span></span>
+          <CycleToggle
+            value={density}
+            onChange={v => setDensity(v as 'normal' | 'compact')}
+            options={[
+              { value: 'normal', label: t('calendar.density.normal'), title: t('calendar.density') },
+              { value: 'compact', label: t('calendar.density.compact'), title: t('calendar.density') },
+            ]}
+            ariaLabel={t('calendar.density')}
+            size="xs"
+          />
+          <ToggleSwitch
+            checked={heatmap}
+            onChange={setHeatmap}
+            ariaLabel={heatmap ? t('calendar.heatmap.disable') : t('calendar.heatmap.enable')}
+            label={<span className="flex items-center gap-1">{t('calendar.heatmap')} <span className="text-[10px] opacity-70">{heatmap ? t('generic.on') : t('generic.off')}</span></span>}
+            size="sm"
+          />
         </div>
       </div>
       <div className="flex items-center gap-4 text-[10px] -mt-2">
-        <label className="flex items-center gap-1 cursor-pointer select-none">
-          <input type="checkbox" className="accent-indigo-500" checked={showSynthetic} onChange={e => setShowSynthetic(e.target.checked)} />
-          <span>{t('calendar.showRecurring')} <span className="inline-block px-1 rounded bg-indigo-500/70 text-inverse">S</span></span>
-        </label>
+        <ToggleSwitch
+          checked={showSynthetic}
+          onChange={setShowSynthetic}
+          ariaLabel={t('calendar.showRecurring')}
+          label={<span>{t('calendar.showRecurring')} <span className="inline-block px-1 rounded bg-indigo-500/70 text-inverse">S</span></span>}
+          size="sm"
+        />
         <div className="flex items-center gap-2 opacity-70">
           <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-green-500/60 inline-block" /> {t('calendar.incomes')}</span>
           <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-red-500/60 inline-block" /> {t('calendar.expenses')}</span>

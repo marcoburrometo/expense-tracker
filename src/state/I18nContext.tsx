@@ -79,6 +79,8 @@ const translations: Record<Locale, Record<string, string>> = {
         'calendar.add.hint': 'Suggerimento: usa virgola o punto per i decimali.',
 
         'generic.close': 'Chiudi',
+        'generic.on': 'On',
+        'generic.off': 'Off',
         'quick.addOpen': 'Aggiungi veloce',
         'quick.addTitle': 'Aggiungi Rapido',
         'quick.cancel': 'Annulla',
@@ -321,6 +323,8 @@ const translations: Record<Locale, Record<string, string>> = {
         'calendar.add.hint': 'Hint: use comma or dot for decimals.',
 
         'generic.close': 'Close',
+        'generic.on': 'On',
+        'generic.off': 'Off',
         'quick.addOpen': 'Quick add',
         'quick.addTitle': 'Quick Add',
         'quick.cancel': 'Cancel',

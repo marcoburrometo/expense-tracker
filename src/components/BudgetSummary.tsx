@@ -6,6 +6,7 @@ import { useMonthlyTotals, useTracker } from '@/state/TrackerContext';
 import { mergeCategories } from '@/domain/categories';
 import { Budget } from '@/domain/types';
 import { useI18n } from '@/state/I18nContext';
+import { useCurrencyFormatter } from '@/lib/format';
 
 export const BudgetSummary: React.FC = () => {
   const { budgets, deleteBudget, updateBudget, expenses } = useTracker();
@@ -14,6 +15,7 @@ export const BudgetSummary: React.FC = () => {
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [form, setForm] = useState<{ category: string; limit: string }>({ category: '', limit: '' });
   const { t } = useI18n();
+  const format = useCurrencyFormatter();
   function startEdit(b: Budget) {
     setEditingId(b.id);
     setForm({ category: b.category, limit: String(b.limit) });
@@ -37,8 +39,8 @@ export const BudgetSummary: React.FC = () => {
   const confirmDetails = deleteTarget ? (
     <>
       <div><span className="opacity-70">Categoria:</span> {deleteTarget.category}</div>
-      <div><span className="opacity-70">Limite:</span> € {deleteTarget.limit.toFixed(2)}</div>
-      <div><span className="opacity-70">Speso mese:</span> € {(totals[deleteTarget.category] || 0).toFixed(2)}</div>
+      <div><span className="opacity-70">Limite:</span> {format(deleteTarget.limit)}</div>
+      <div><span className="opacity-70">Speso mese:</span> {format(totals[deleteTarget.category] || 0)}</div>
     </>
   ) : null;
   return (
@@ -61,7 +63,7 @@ export const BudgetSummary: React.FC = () => {
                         <button onClick={() => setConfirmDeleteId(b.id)} className="glass-button glass-button--danger text-[10px] pressable">{t('budget.delete')}</button>
                       </div>
                     </div>
-                    <div className="text-xs text-muted">€ {spent.toFixed(2)} / € {b.limit.toFixed(2)} {remaining >= 0 ? `(${t('budget.remaining')} € ${remaining.toFixed(2)})` : `(${t('budget.over')} € ${(Math.abs(remaining)).toFixed(2)})`}</div>
+                    <div className="text-xs text-muted">{format(spent)} / {format(b.limit)} {remaining >= 0 ? `(${t('budget.remaining')} ${format(remaining)})` : `(${t('budget.over')} ${format(Math.abs(remaining))})`}</div>
                     <div className="h-2 rounded overflow-hidden mt-1 relative bg-neutral-200/70 dark:bg-neutral-700/40">
                       <div
                         className="h-full transition-all duration-500 ease-out"

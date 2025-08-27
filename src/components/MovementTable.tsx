@@ -5,6 +5,7 @@ import { useTracker } from '@/state/TrackerContext';
 import { AnyExpense, RecurringExpenseTemplate, GeneratedRecurringExpenseInstance, isTemplate } from '@/domain/types';
 import { useMovementFilters } from '@/state/MovementFiltersContext';
 import { useI18n } from '@/state/I18nContext';
+import { useCurrencyFormatter } from '@/lib/format';
 
 interface Row { id: string; date: string; description: string; category: string; direction: 'in' | 'out'; amount: number; balance: number; projected?: boolean; }
 
@@ -24,6 +25,7 @@ export const MovementTable: React.FC = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValues, setEditValues] = useState<{ description: string; amount: string; category: string; direction: 'in' | 'out'; date: string } | null>(null);
   const { t } = useI18n();
+  const format = useCurrencyFormatter({ signDisplay: 'always' });
 
   function startEdit(id: string) {
     const target = rows.find(r => r.id === id);
@@ -192,7 +194,7 @@ export const MovementTable: React.FC = () => {
     return { inc, out, net: inc - out };
   }, [rows]);
 
-  const nf = useMemo(() => new Intl.NumberFormat(undefined, { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2, signDisplay: 'always' }), []);
+  // Replaced Intl.NumberFormat with centralized formatter
 
   function exportCSV() {
     const csv = formatCSV(rows.slice().sort((a, b) => a.date.localeCompare(b.date)));
@@ -263,10 +265,10 @@ export const MovementTable: React.FC = () => {
         </div>
       </div>
       <div className="mov-summary px-2 md:px-3 py-2 glass-panel glass-panel--pure flex gap-4 text-[11px] md:text-xs flex-wrap items-center">
-        <span className="text-success font-medium">{t('mov.income')}: {nf.format(totals.inc)}</span>
-        <span className="text-danger font-medium">{t('mov.expenses')}: {nf.format(totals.out)}</span>
-        <span className={(totals.net >= 0 ? 'text-success' : 'text-danger') + ' font-semibold'}>{t('mov.net')}: {nf.format(totals.net)}</span>
-        {rows.length > 0 && <span className="text-secondary">{t('mov.finalBalance')}: {nf.format(rows[rows.length - 1].balance)}</span>}
+        <span className="text-success font-medium">{t('mov.income')}: {format(totals.inc)}</span>
+        <span className="text-danger font-medium">{t('mov.expenses')}: {format(totals.out)}</span>
+        <span className={(totals.net >= 0 ? 'text-success' : 'text-danger') + ' font-semibold'}>{t('mov.net')}: {format(totals.net)}</span>
+        {rows.length > 0 && <span className="text-secondary">{t('mov.finalBalance')}: {format(rows[rows.length - 1].balance)}</span>}
         <span className="ml-auto opacity-60 text-[10px]">{t('mov.sort')}: {sortField} {sortDesc ? '↓' : '↑'}</span>
       </div>
       <div className={`overflow-auto flex-1 min-h-0 glass-scroll rounded-md border border-white/30 dark:border-white/5 ${density === 'compact' ? 'text-[11px]' : 'text-[12px]'}`}>
@@ -360,7 +362,7 @@ export const MovementTable: React.FC = () => {
                           className="glass-input glass-input--sm w-[90px] text-right font-mono"
                         />
                       </td>
-                      <td className="px-2 py-1 text-right font-mono tabular-nums hidden sm:table-cell">{nf.format(r.balance)}</td>
+                      <td className="px-2 py-1 text-right font-mono tabular-nums hidden sm:table-cell">{format(r.balance)}</td>
                       <td className="px-2 py-1 text-right whitespace-nowrap flex gap-1 justify-end">
                         <button onClick={commitEdit} className="glass-button glass-button--sm glass-button--success" aria-label={t('mov.actions.save')}>✓</button>
                         <button onClick={cancelEdit} className="glass-button glass-button--sm glass-button--neutral" aria-label={t('mov.actions.cancel')}>↺</button>
@@ -375,8 +377,8 @@ export const MovementTable: React.FC = () => {
                         {r.projected && <span className="ml-1 glass-badge badge-future">{t('mov.future')}</span>}
                       </td>
                       <td className="px-2 py-1 hidden md:table-cell">{r.category}</td>
-                      <td className={`px-2 py-1 text-right font-mono tabular-nums ${amountSigned >= 0 ? 'text-success' : 'text-danger'}`}>{nf.format(amountSigned)}</td>
-                      <td className={`px-2 py-1 text-right font-mono tabular-nums hidden sm:table-cell ${r.balance >= 0 ? 'text-success' : 'text-danger'}`}>{nf.format(r.balance)}</td>
+                      <td className={`px-2 py-1 text-right font-mono tabular-nums ${amountSigned >= 0 ? 'text-success' : 'text-danger'}`}>{format(amountSigned)}</td>
+                      <td className={`px-2 py-1 text-right font-mono tabular-nums hidden sm:table-cell ${r.balance >= 0 ? 'text-success' : 'text-danger'}`}>{format(r.balance)}</td>
                       <td className="px-2 py-1 text-right whitespace-nowrap flex gap-1 justify-end">
                         {!r.projected && (
                           <button
