@@ -261,3 +261,35 @@ Google Analytics (GA4) is optional. If `NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID` (or
 * Never sends movement data, descriptions, amounts, categories – only page path + location
 
 To disable after enabling, toggle it off in the Config page (removes future events; already sent hits cannot be recalled). If you never set the env var, no tracking code is shipped.
+
+---
+
+## 🔍 Basic SEO / Meta Configuration
+
+The project now ships with opinionated default meta tags via the App Router:
+
+* `app/head.tsx` – global `<title>`, description, canonical, OG/Twitter fallback
+* Per‑section heads: `app/calendar/head.tsx`, `app/config/head.tsx`, `app/movimenti/head.tsx`
+* `metadataBase` configured in `app/layout.tsx` using `NEXT_PUBLIC_SITE_URL`
+* `robots.ts` + `sitemap.ts` auto‑generate crawl directives & a basic sitemap
+* JSON‑LD (`SoftwareApplication`) injected in `layout.tsx`
+
+Environment variable required for correct absolute URLs:
+
+```dotenv
+NEXT_PUBLIC_SITE_URL=https://your-domain.tld
+```
+
+If not set it falls back to `https://janet-tracker.me` (replace before production if you fork).
+
+Roadmap / potential SEO improvements:
+
+| Item                                           | Purpose                                   |
+| ---------------------------------------------- | ----------------------------------------- |
+| Dynamic OG image generation                    | Rich shares with live stats snapshot      |
+| `hreflang` EN/IT                               | Help search engines pick correct language |
+| Meta `theme-color` per theme                   | Better mobile UI integration              |
+| Structured data: `FinancialProduct` (optional) | Enhance SERP context                      |
+| Performance budget + Core Web Vitals audit     | Lighthouse quality pass                   |
+
+---
