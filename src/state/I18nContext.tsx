@@ -87,7 +87,7 @@ const translations: Record<Locale, Record<string, string>> = {
         'calendar.close': 'Chiudi',
         'calendar.backToToday': 'Torna ad Oggi',
         'calendar.dailySummary': 'Riepilogo giornaliero e movimenti.',
-    'calendar.add.hint': 'Suggerimento: usa virgola o punto per i decimali',
+        'calendar.add.hint': 'Suggerimento: usa virgola o punto per i decimali',
 
         'generic.close': 'Chiudi',
         'generic.on': 'On',
@@ -409,7 +409,7 @@ const translations: Record<Locale, Record<string, string>> = {
         'calendar.close': 'Close',
         'calendar.backToToday': 'Back to Today',
         'calendar.dailySummary': 'Daily summary and movements.',
-    'calendar.add.hint': 'Hint: use comma or dot for decimals',
+        'calendar.add.hint': 'Hint: use comma or dot for decimals',
 
         'generic.close': 'Close',
         'generic.on': 'On',
