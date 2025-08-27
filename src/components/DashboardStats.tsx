@@ -15,8 +15,8 @@ export const DashboardStats: React.FC = () => {
   const { t } = useI18n();
   return (
     <div className="grid gap-3 sm:gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
-  <StatCard label={t('stats.incomeTotal')} value={`€ ${totalIn.toFixed(2)}`} accent="green" hint={t('stats.incomeTotal') + ' · ' + t('stats.total')} />
-  <StatCard label={t('stats.expenseTotal')} value={`€ ${totalOut.toFixed(2)}`} accent="red" hint={t('stats.expenseTotal') + ' · ' + t('stats.total')} />
+      <StatCard label={t('stats.incomeTotal')} value={`€ ${totalIn.toFixed(2)}`} accent="green" hint={t('stats.incomeTotal') + ' · ' + t('stats.total')} />
+      <StatCard label={t('stats.expenseTotal')} value={`€ ${totalOut.toFixed(2)}`} accent="red" hint={t('stats.expenseTotal') + ' · ' + t('stats.total')} />
       <StatCard label={t('stats.balance')} value={`€ ${net.toFixed(2)}`} accent={net >= 0 ? 'green' : 'red'} hint={t('stats.balance.hint')} />
       <StatCard label={t('stats.categories')} value={new Set(expenses.map(e => e.category)).size} accent="indigo" hint={t('stats.categories.hint')} />
       <StatCard label={t('stats.recurring')} value={recurringCount} accent="blue" hint={t('stats.recurring.hint')} />
