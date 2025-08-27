@@ -27,6 +27,7 @@ JANET ("Just ANother Expense Tracker") is a modern expense & budget tracker focu
 
 ## ✨ Core Features
 
+
 * One‑off and recurring movements (weekly / monthly / yearly) generated synthetically for the current window
 * Monthly budgets per category with progress summary
 * Shared filters (direction, date range, category, search, future projections)
