@@ -58,9 +58,9 @@ const translations: Record<Locale, Record<string, string>> = {
         'calendar.density.normal': 'Normale',
         'calendar.density.compact': 'Compatta',
         'calendar.showRecurring': 'Mostra ricorrenze',
-    'calendar.viewMode': 'Vista',
-    'calendar.view.list': 'Lista',
-    'calendar.view.category': 'Categorie',
+        'calendar.viewMode': 'Vista',
+        'calendar.view.list': 'Lista',
+        'calendar.view.category': 'Categorie',
         'calendar.incomes': 'Entrate',
         'calendar.expenses': 'Uscite',
         'calendar.weekdays.mon': 'Lun',
@@ -210,7 +210,7 @@ const translations: Record<Locale, Record<string, string>> = {
         'invite.accepted': 'Invito accettato, workspace attivato',
         // Calendar day details
         'calendar.none': 'Nessun movimento',
-    'calendar.synthetic': 'Istanza ricorrenza sintetica',
+        'calendar.synthetic': 'Istanza ricorrenza sintetica',
         // Generic field labels (confirm detail blocks)
         'field.category': 'Categoria',
         'field.limit': 'Limite',
@@ -297,9 +297,9 @@ const translations: Record<Locale, Record<string, string>> = {
         'calendar.density.normal': 'Normal',
         'calendar.density.compact': 'Compact',
         'calendar.showRecurring': 'Show recurrences',
-    'calendar.viewMode': 'View',
-    'calendar.view.list': 'List',
-    'calendar.view.category': 'Categories',
+        'calendar.viewMode': 'View',
+        'calendar.view.list': 'List',
+        'calendar.view.category': 'Categories',
         'calendar.incomes': 'Income',
         'calendar.expenses': 'Expenses',
         'calendar.weekdays.mon': 'Mon',
@@ -449,7 +449,7 @@ const translations: Record<Locale, Record<string, string>> = {
         'invite.accepted': 'Invite accepted, workspace activated',
         // Calendar day details
         'calendar.none': 'No movements',
-    'calendar.synthetic': 'Synthetic recurrence instance',
+        'calendar.synthetic': 'Synthetic recurrence instance',
         // Generic field labels (confirm detail blocks)
         'field.category': 'Category',
         'field.limit': 'Limit',
