@@ -678,6 +678,9 @@ export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (typeof window !== 'undefined') {
             window.localStorage.setItem(LS_KEY, l);
             document.documentElement.lang = l;
+            try {
+                document.cookie = `janet_locale=${l};path=/;max-age=${60 * 60 * 24 * 365}`;
+            } catch {/* ignore */ }
         }
     }, []);
 
