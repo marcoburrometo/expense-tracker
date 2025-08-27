@@ -43,7 +43,6 @@ JANET ("Just ANother Expense Tracker") is a modern expense & budget tracker focu
 
 ## 🧱 Architecture & Structure
 
-
 ```
 src/
   app/                # Layout & pages (App Router)
