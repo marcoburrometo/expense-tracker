@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { GlassPanel } from './GlassPanel';
+import InfoHint from './InfoHint';
 import { useTheme } from '@/state/ThemeContext';
 import { useAuth } from '@/state/AuthContext';
 import { useWorkspace } from '@/state/WorkspaceContext';
@@ -175,19 +176,39 @@ export const Navbar: React.FC = () => {
           )}
           <div className="flex items-center gap-2">
             <button onClick={async () => { await onCreateWorkspace(); onClick?.(); }} className="glass-button glass-button--sm" aria-label={t('nav.newWorkspace')}>＋WS</button>
-            <span className={`glass-badge text-[9px] tracking-wide ${cloudSyncEnabled ? 'text-success' : 'text-tertiary'}`}>{syncLabel}</span>
+            <span className={`glass-badge text-[9px] tracking-wide flex items-center gap-1 ${cloudSyncEnabled ? 'text-success' : 'text-tertiary'}`}>{syncLabel}
+              <InfoHint
+                tKey={cloudSyncEnabled ? (saving ? 'sync.hint.saving' : 'sync.hint.synced') : 'sync.hint.local'}
+                side="bottom"
+              />
+            </span>
             <button onClick={() => { logout(); onClick?.(); }} disabled={loading} className="glass-button glass-button--sm" aria-label={t('nav.logout')}>{t('nav.logout')}</button>
           </div>
         </div>
       ) : (
-        <button
-          onClick={() => { signInWithGoogle(); onClick?.(); }}
-          disabled={loading}
-          className="glass-button glass-button--primary glass-button--sm px-4"
-          aria-label="Google Login"
-        >
-          {loading ? '...' : t('nav.login')}
-        </button>
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          {/* Show local/sync badge also in local (unauthenticated) mode */}
+          <span
+            className={`glass-badge text-[9px] tracking-wide flex items-center gap-1 ${cloudSyncEnabled ? 'text-success' : 'text-tertiary'}`}
+            aria-label={cloudSyncEnabled ? t('sync.status') : t('sync.local')}
+            role="status"
+            aria-live="polite"
+          >
+            {syncLabel}
+            <InfoHint
+              tKey={cloudSyncEnabled ? (saving ? 'sync.hint.saving' : 'sync.hint.synced') : 'sync.hint.local'}
+              side="bottom"
+            />
+          </span>
+          <button
+            onClick={() => { signInWithGoogle(); onClick?.(); }}
+            disabled={loading}
+            className="glass-button glass-button--primary glass-button--sm px-4"
+            aria-label="Google Login"
+          >
+            {loading ? '...' : t('nav.login')}
+          </button>
+        </div>
       )}
     </div>
   );

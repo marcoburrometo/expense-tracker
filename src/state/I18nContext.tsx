@@ -28,6 +28,10 @@ const translations: Record<Locale, Record<string, string>> = {
         'sync.local': 'Locale',
         'sync.saving': 'Salvataggio…',
         'sync.synced': 'Sincronizzato',
+        'sync.status': 'Stato sync',
+        'sync.hint.local': 'Modalità solo locale: i dati restano nel browser finché non abiliti un workspace cloud.',
+        'sync.hint.saving': 'Sync cloud attivo: salvataggio in corso…',
+        'sync.hint.synced': 'Sync cloud attivo: tutte le modifiche salvate.',
 
         // Alerts (dashboard / budgets)
         'alert.budget.nearLimit': 'Budget quasi al limite',
@@ -320,6 +324,10 @@ const translations: Record<Locale, Record<string, string>> = {
         'sync.local': 'Local',
         'sync.saving': 'Saving…',
         'sync.synced': 'Synced',
+        'sync.status': 'Sync status',
+        'sync.hint.local': 'Local-only mode: data stored in your browser until you enable a cloud workspace.',
+        'sync.hint.saving': 'Cloud sync active: saving changes…',
+        'sync.hint.synced': 'Cloud sync active: all changes saved.',
 
         // Alerts (dashboard / budgets)
         'alert.budget.nearLimit': 'Budget near limit',
