@@ -216,15 +216,22 @@ export const Navbar: React.FC = () => {
   return (
     <GlassPanel as="nav" variant="flat-pure" className="glass-panel--overflow-visible w-full px-4 md:px-6 py-2.5 flex items-center gap-3 md:gap-6 text-sm relative">
       {/* Brand / Logo placeholder */}
-      <div className="group/brand flex items-center gap-2 font-semibold tracking-tight relative select-none">
+      <Link
+        href="/"
+        onClick={() => { close(); }}
+        className="group/brand flex items-center gap-2 font-semibold tracking-tight relative select-none"
+        aria-label={t('nav.movements')}
+      >
         <span className="text-accent text-[15px] leading-none">💰</span>
         <span className="glass-text-brand leading-tight text-[15px] tracking-tight">JANET</span>
         {/* Tooltip tagline (hover / focus) */}
         <span
           role="tooltip"
           className="pointer-events-none opacity-0 group-hover/brand:opacity-100 group-focus-within/brand:opacity-100 transition-opacity duration-200 absolute top-full left-[55%] translate-x-0 mt-2 px-2.5 py-1.5 rounded-md text-[9px] font-medium tracking-[0.09em] uppercase backdrop-blur-md bg-white/65 dark:bg-neutral-800/75 text-secondary shadow-lg shadow-black/10 dark:shadow-black/40 whitespace-nowrap z-30 border border-white/30 dark:border-white/10"
-        >Just ANother Expense Tracker</span>
-      </div>
+        >
+          Just ANother Expense Tracker
+        </span>
+      </Link>
       <div className="hidden sm:flex items-center gap-5">
         {renderLinks()}
       </div>
