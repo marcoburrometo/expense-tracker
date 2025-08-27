@@ -157,7 +157,7 @@ Security TODO:
 
 1. Clone repo
 2. `npm install`
-3. Create `.env.local` with your Firebase keys:
+3. Create `.env.local` with your Firebase keys (add measurement ID only if you want Google Analytics – optional & privacy‑friendly pageview tracking):
 
 ```dotenv
 NEXT_PUBLIC_FIREBASE_API_KEY=... 
@@ -166,7 +166,7 @@ NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
 NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=... 
 NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=... 
 NEXT_PUBLIC_FIREBASE_APP_ID=... 
-NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=...
+NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=... # optional (GA4) – enabling adds anonymous page view tracking
 ```
 
 4. `npm run dev`
@@ -248,3 +248,16 @@ Internal / demo project. Add a license before making it public.
 ---
 
 Questions or ideas? Open an internal issue or append to the roadmap section.
+
+---
+
+## 📈 Optional Analytics
+
+Google Analytics (GA4) is optional. If `NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID` (or `NEXT_PUBLIC_GA_MEASUREMENT_ID`) is set the app will:
+
+* Lazy‑inject GA script only on the client (no server beacons)
+* Disable automatic page view; manual page_view events fire on route changes
+* Respect a local toggle (Config → "Analytics & Telemetry") storing opt‑out flag in `localStorage` (`janet.analytics.disabled`)
+* Never sends movement data, descriptions, amounts, categories – only page path + location
+
+To disable after enabling, toggle it off in the Config page (removes future events; already sent hits cannot be recalled). If you never set the env var, no tracking code is shipped.

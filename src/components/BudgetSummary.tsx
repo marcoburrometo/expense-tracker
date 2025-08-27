@@ -6,6 +6,7 @@ import { useMonthlyTotals, useTracker } from '@/state/TrackerContext';
 import { mergeCategories } from '@/domain/categories';
 import { Budget } from '@/domain/types';
 import { useI18n } from '@/state/I18nContext';
+import { formatCategory } from '@/lib/formatCategory';
 import { useCurrencyFormatter } from '@/lib/format';
 
 export const BudgetSummary: React.FC = () => {
@@ -38,7 +39,7 @@ export const BudgetSummary: React.FC = () => {
   const deleteTarget = confirmDeleteId ? budgets.find(b => b.id === confirmDeleteId) : null;
   const confirmDetails = deleteTarget ? (
     <>
-      <div><span className="opacity-70">Categoria:</span> {deleteTarget.category}</div>
+  <div><span className="opacity-70">Categoria:</span> {formatCategory(deleteTarget.category, t)}</div>
       <div><span className="opacity-70">Limite:</span> {format(deleteTarget.limit)}</div>
       <div><span className="opacity-70">Speso mese:</span> {format(totals[deleteTarget.category] || 0)}</div>
     </>
@@ -57,7 +58,7 @@ export const BudgetSummary: React.FC = () => {
                 {editingId !== b.id && (
                   <>
                     <div className="flex justify-between items-center">
-                      <span className="font-medium">{b.category}</span>
+                      <span className="font-medium">{formatCategory(b.category, t)}</span>
                       <div className="flex gap-2">
                         <button onClick={() => startEdit(b)} className="glass-button glass-button--primary text-[10px] pressable">{t('budget.edit')}</button>
                         <button onClick={() => setConfirmDeleteId(b.id)} className="glass-button glass-button--danger text-[10px] pressable">{t('budget.delete')}</button>
@@ -83,7 +84,7 @@ export const BudgetSummary: React.FC = () => {
                 {editingId === b.id && (
                   <form onSubmit={e => { e.preventDefault(); submit(b.id); }} className="flex flex-col gap-2 text-xs fade-in" style={{ animationDelay: '.1s' }}>
                     <select className="glass-input" value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}>
-                      {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                      {categories.map(c => <option key={c} value={c}>{formatCategory(c, t)}</option>)}
                     </select>
                     <input className="glass-input" type="number" step="0.01" value={form.limit} onChange={e => setForm(f => ({ ...f, limit: e.target.value }))} />
                     <div className="flex gap-2 justify-end">

@@ -301,6 +301,24 @@ const translations: Record<Locale, Record<string, string>> = {
         'config.confirm.deleteInvite.confirm': 'Elimina',
         'config.invite.delete.titleAttr': 'Elimina invito',
         'config.member.remove.titleAttr': 'Rimuovi membro',
+        // Analytics
+        'analytics.section.title': 'Analytics & Telemetria',
+        'analytics.optInLabel': 'Abilita Google Analytics',
+        'analytics.optOutLabel': 'Disabilita Google Analytics',
+        'analytics.description': 'Raccoglie page view anonime e eventi di base per migliorare UX. Nessun dato personale o contenuto dei movimenti viene inviato.',
+        'analytics.disabled.notice': 'Analytics disabilitato: nessun tracking inviato.',
+        'analytics.enabled.notice': 'Analytics attivo: pageview e interazioni base anonime.',
+        // Categories (default)
+        'cat.Generale': 'Generale',
+        'cat.Affitto': 'Affitto',
+        'cat.Spesa': 'Spesa',
+        'cat.Trasporti': 'Trasporti',
+        'cat.Bollette': 'Bollette',
+        'cat.Intrattenimento': 'Intrattenimento',
+        'cat.Salute': 'Salute',
+        'cat.Abbonamenti': 'Abbonamenti',
+        'cat.Viaggi': 'Viaggi',
+        'cat.Altro': 'Altro',
     },
     en: {
         'nav.movements': 'Movements',
@@ -597,6 +615,24 @@ const translations: Record<Locale, Record<string, string>> = {
         'config.confirm.deleteInvite.confirm': 'Delete',
         'config.invite.delete.titleAttr': 'Delete invite',
         'config.member.remove.titleAttr': 'Remove member',
+        // Analytics
+        'analytics.section.title': 'Analytics & Telemetry',
+        'analytics.optInLabel': 'Enable Google Analytics',
+        'analytics.optOutLabel': 'Disable Google Analytics',
+        'analytics.description': 'Collects anonymous page views and basic events to improve UX. No personal data or movement content is sent.',
+        'analytics.disabled.notice': 'Analytics disabled: no tracking sent.',
+        'analytics.enabled.notice': 'Analytics enabled: anonymous pageviews and basic interactions.',
+        // Categories (default)
+        'cat.Generale': 'General',
+        'cat.Affitto': 'Rent',
+        'cat.Spesa': 'Groceries',
+        'cat.Trasporti': 'Transport',
+        'cat.Bollette': 'Bills',
+        'cat.Intrattenimento': 'Entertainment',
+        'cat.Salute': 'Health',
+        'cat.Abbonamenti': 'Subscriptions',
+        'cat.Viaggi': 'Travel',
+        'cat.Altro': 'Other',
     }
 };
 
