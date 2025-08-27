@@ -9,9 +9,10 @@ export interface DayCellProps {
   onOpenDay: (day: string) => void;
   fmt: (d: Date) => string;
   density?: 'normal' | 'compact';
+  heatmap?: boolean;
 }
 
-export const DayCell: React.FC<DayCellProps> = ({ date, bucket, onOpenDay, fmt, density = 'normal' }) => {
+export const DayCell: React.FC<DayCellProps> = ({ date, bucket, onOpenDay, fmt, density = 'normal', heatmap = false }) => {
   if (!date) {
     return <div className="opacity-0" aria-hidden />; // spacer keeps grid structure
   }
@@ -24,11 +25,26 @@ export const DayCell: React.FC<DayCellProps> = ({ date, bucket, onOpenDay, fmt, 
   // Neutral, intensity-based background (removes green/red radial gradient)
   // Softer accent overlay using CSS var accent-rgb; reduced alpha scaling for a more delicate look in both themes
   const accentAlpha = +(0.04 + 0.18 * intensity).toFixed(3);
-  const style: React.CSSProperties | undefined = bucket ? {
-    background: `linear-gradient(150deg, rgba(255,255,255,0.60), rgba(255,255,255,0.22)), rgba(var(--accent-rgb)/${accentAlpha})`,
-    boxShadow: intensity > 0 ? `0 0 0 1px rgba(255,255,255,0.35), 0 4px 14px -6px rgba(0,0,0,${(0.18 + 0.25 * intensity).toFixed(3)})` : undefined,
-    backdropFilter: 'blur(6px)'
-  } : undefined;
+  let style: React.CSSProperties | undefined;
+  if (bucket) {
+    if (heatmap) {
+      const heat = Math.min(1, magnitude / 800); // slightly slower ramp
+      const hue = total >= 0 ? 152 : 4; // green-ish for positive net, red for negative
+      const sat = 65;
+      const lightBase = 86 - heat * 38; // 86% -> 48%
+      style = {
+        background: `linear-gradient(140deg, rgba(255,255,255,${0.55 - heat * 0.25}), rgba(255,255,255,${0.18 - heat * 0.10})), hsl(${hue} ${sat}% ${lightBase}%)`,
+        boxShadow: heat > 0.05 ? `0 0 0 1px rgba(255,255,255,0.28), 0 3px ${10 + 14 * heat}px -4px rgba(0,0,0,${0.18 + 0.28 * heat})` : undefined,
+        backdropFilter: 'blur(6px) saturate(160%)'
+      };
+    } else {
+      style = {
+        background: `linear-gradient(150deg, rgba(255,255,255,0.60), rgba(255,255,255,0.22)), rgba(var(--accent-rgb)/${accentAlpha})`,
+        boxShadow: intensity > 0 ? `0 0 0 1px rgba(255,255,255,0.35), 0 4px 14px -6px rgba(0,0,0,${(0.18 + 0.25 * intensity).toFixed(3)})` : undefined,
+        backdropFilter: 'blur(6px)'
+      };
+    }
+  }
   return (
     <button
       type="button"

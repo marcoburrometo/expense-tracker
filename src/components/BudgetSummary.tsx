@@ -62,8 +62,19 @@ export const BudgetSummary: React.FC = () => {
                       </div>
                     </div>
                     <div className="text-xs text-muted">€ {spent.toFixed(2)} / € {b.limit.toFixed(2)} {remaining >= 0 ? `(${t('budget.remaining')} € ${remaining.toFixed(2)})` : `(${t('budget.over')} € ${(Math.abs(remaining)).toFixed(2)})`}</div>
-                    <div className="h-2 bg-neutral-200 dark:bg-neutral-600 rounded overflow-hidden mt-1">
-                      <div className={`${remaining < 0 ? 'bg-red-500' : 'bg-green-500'} h-full`} style={{ width: pct + '%' }} />
+                    <div className="h-2 rounded overflow-hidden mt-1 relative bg-neutral-200/70 dark:bg-neutral-700/40">
+                      <div
+                        className="h-full transition-all duration-500 ease-out"
+                        style={{
+                          width: pct + '%',
+                          background: remaining < 0
+                            ? 'linear-gradient(90deg, #ef4444, #dc2626 55%, #991b1b)'
+                            : `linear-gradient(90deg, #10b981, #059669 ${Math.min(70, pct)}%, #047857)`
+                        }}
+                      />
+                      {pct > 0 && pct < 100 && (
+                        <div className="absolute inset-0 pointer-events-none opacity-40 mix-blend-overlay" style={{ background: 'radial-gradient(at 15% 35%, rgba(255,255,255,.65), rgba(255,255,255,0) 55%)' }} />
+                      )}
                     </div>
                   </>
                 )}

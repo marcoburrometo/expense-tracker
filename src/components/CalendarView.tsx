@@ -24,6 +24,7 @@ export const CalendarView: React.FC = () => {
   const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
   const [showSynthetic, setShowSynthetic] = useState(true);
   const [density, setDensity] = useState<'normal' | 'compact'>('normal');
+  const [heatmap, setHeatmap] = useState<boolean>(false);
   const { t } = useI18n();
   const monthStart = startOfMonth(cursor);
   const monthEnd = endOfMonth(cursor);
@@ -179,6 +180,7 @@ export const CalendarView: React.FC = () => {
           <span>{t('calendar.incomeTotal')}: <span className="text-success">€ {Array.from(buckets.values()).reduce((s, b) => s + b.in, 0).toFixed(2)}</span></span>
           <span>{t('calendar.expenseTotal')}: <span className="text-danger">€ {Array.from(buckets.values()).reduce((s, b) => s + b.out, 0).toFixed(2)}</span></span>
           <button type="button" onClick={() => setDensity(d => d === 'normal' ? 'compact' : 'normal')} className="glass-button glass-button--xs" aria-label="Toggle densità calendario">{t('calendar.density')}: {density === 'normal' ? t('calendar.density.normal') : t('calendar.density.compact')}</button>
+          <button type="button" onClick={() => setHeatmap(h => !h)} className="glass-button glass-button--xs" aria-label={heatmap ? t('calendar.heatmap.disable') : t('calendar.heatmap.enable')}>{t('calendar.heatmap')}: {heatmap ? 'ON' : 'OFF'}</button>
         </div>
       </div>
       <div className="flex items-center gap-4 text-[10px] -mt-2">
@@ -195,7 +197,7 @@ export const CalendarView: React.FC = () => {
         {[t('calendar.weekdays.mon'), t('calendar.weekdays.tue'), t('calendar.weekdays.wed'), t('calendar.weekdays.thu'), t('calendar.weekdays.fri'), t('calendar.weekdays.sat'), t('calendar.weekdays.sun')].map(d => <div key={d} className="text-center" role="columnheader">{d}</div>)}
       </div>
       <div className={`cal-grid ${density === 'compact' ? 'cal-density-compact' : ''}`} role="grid" aria-label="Calendario mensile" aria-readonly="true">
-        {grid.map((d, i) => <DayCell key={d ? fmt(d) : `pad-${i}`} date={d} bucket={d ? buckets.get(fmt(d)) : undefined} onOpenDay={(day) => { setActiveDay(day); setViewMode('list'); }} fmt={fmt} density={density} />)}
+        {grid.map((d, i) => <DayCell key={d ? fmt(d) : `pad-${i}`} date={d} bucket={d ? buckets.get(fmt(d)) : undefined} onOpenDay={(day) => { setActiveDay(day); setViewMode('list'); }} fmt={fmt} density={density} heatmap={heatmap} />)}
       </div>
       <Confirm
         open={!!activeDay}

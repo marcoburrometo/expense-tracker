@@ -36,8 +36,20 @@ export const DayDetails: React.FC<DayDetailsProps> = ({ activeDay, buckets, sort
         <span>{t('calendar.expenseTotal')} <strong className="text-danger">€ {totalOut.toFixed(2)}</strong></span>
         <span>{t('stats.balance')} <strong className={net >= 0 ? 'text-success' : 'text-danger'}>{net >= 0 ? '+' : '-'}€ {Math.abs(net).toFixed(2)}</strong></span>
         <div className="ml-auto flex gap-1">
-          <button type="button" onClick={() => setSortBy(s => s === 'date' ? 'amount' : 'date')} className="glass-button glass-button--xs" aria-label="Toggle sort">{t('mov.sort')}: {sortBy === 'date' ? t('mov.col.date') : t('mov.col.amount')}</button>
-          <button type="button" onClick={() => setViewMode(v => v === 'list' ? 'category' : 'list')} className="glass-button glass-button--xs" aria-label={t('calendar.viewMode')}>{t('calendar.viewMode')}: {viewMode === 'list' ? t('calendar.view.list') : t('calendar.view.category')}</button>
+          <button
+            type="button"
+            onClick={() => setSortBy(s => s === 'date' ? 'amount' : 'date')}
+            className="glass-button glass-button--xs glass-button--anim micro-press-anim"
+            data-active={sortBy === 'amount'}
+            aria-label="Toggle sort"
+          >{t('mov.sort')}: {sortBy === 'date' ? t('mov.col.date') : t('mov.col.amount')}</button>
+          <button
+            type="button"
+            onClick={() => setViewMode(v => v === 'list' ? 'category' : 'list')}
+            className="glass-button glass-button--xs glass-button--anim micro-press-anim"
+            data-active={viewMode === 'category'}
+            aria-label={t('calendar.viewMode')}
+          >{t('calendar.viewMode')}: {viewMode === 'list' ? t('calendar.view.list') : t('calendar.view.category')}</button>
         </div>
       </div>
       {viewMode === 'list' ? (

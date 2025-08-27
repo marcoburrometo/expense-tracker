@@ -108,6 +108,58 @@ html.dark .app-shell::before {
   animation: iconPopFade .42s cubic-bezier(.16, .8, .3, 1) both;
 }
 
+/* Micro press / toggle feedback (scale + subtle sheen) */
+@keyframes btnPulseMicro {
+  0% {
+    transform: scale(1);
+  }
+
+  55% {
+    transform: scale(1.08);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+.micro-press-anim:active:not(:disabled) {
+  transform: scale(.94);
+  transition: transform .15s ease;
+}
+
+/* Add a class to trigger animation imperatively (toggle state) */
+.micro-toggle-pop {
+  animation: btnPulseMicro .38s cubic-bezier(.22, .9, .3, 1) both;
+}
+
+/* Utility to smoothly animate background / border emphasis on interactive glass buttons */
+.glass-button--anim {
+  position: relative;
+  transition: background .35s ease, border-color .35s ease, color .35s ease, box-shadow .35s ease, transform .35s ease;
+}
+
+.glass-button--anim:hover:not(:disabled) {
+  box-shadow: 0 2px 6px -2px rgba(0 0 0 / 0.25), 0 4px 14px -6px rgba(0 0 0 / 0.25);
+}
+
+.glass-button--anim:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb)/0.55), 0 2px 8px -2px rgba(0 0 0 / 0.4);
+}
+
+.glass-button--anim[data-active='true'] {
+  background: linear-gradient(140deg, rgba(var(--accent-rgb)/0.18), rgba(var(--accent-rgb)/0.08));
+  border-color: rgba(var(--accent-rgb)/0.55);
+  color: var(--text-accent);
+}
+
+html[data-theme='dark'] .glass-button--anim[data-active='true'],
+html.dark .glass-button--anim[data-active='true'] {
+  background: linear-gradient(140deg, rgba(var(--accent-rgb)/0.28), rgba(var(--accent-rgb)/0.08));
+  border-color: rgba(var(--accent-rgb)/0.65);
+}
+
 .nav-drawer-anim {
   animation: navSlideFade .25s cubic-bezier(.16, .8, .24, 1) both;
 }
