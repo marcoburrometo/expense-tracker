@@ -21,6 +21,15 @@ Two places generate instances:
 2. Calendar synthetic preview (CalendarView) also generates ephemeral instances (not persisted) if missing.
 Agents adding new frequencies MUST update both: reducer generation helpers + calendar synthetic generation.
 
+### 9.a Internationalization (i18n)
+- I18n introduced with `I18nContext` (`src/state/I18nContext.tsx`).
+- Use `const { t } = useI18n();` then replace hardcoded user‑facing strings with keys.
+- Key pattern: `section.label` (e.g. `form.amount`, `calendar.prevMonth`, `nav.movements`).
+- Extend translations by adding keys to both `it` and `en` objects; keep keys alphabetically grouped by prefix if adding many.
+- Avoid dynamic key construction unless previously established; prefer explicit keys.
+- When adding new components: start with English/Italian simultaneously to prevent partial language gaps.
+- HTML `lang` attribute auto-updated via provider; don't hardcode `lang` elsewhere.
+
 ## 4. Sync Pattern
 - Debounced (800ms) save in `WorkspaceContext` comparing JSON string of tracker vs last saved.
 - Before saving: deep sanitize via JSON stringify/parse to strip `undefined`.

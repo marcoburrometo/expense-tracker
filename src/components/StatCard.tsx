@@ -12,6 +12,10 @@ interface StatCardProps {
   className?: string;
 }
 
+// NOTE i18n: This component is intentionally "dumb" – callers should pass an already-translated
+// label and hint (e.g. use const { t } = useI18n(); <StatCard label={t('stats.balance')} ... /> )
+// so we avoid coupling this primitive with i18n context and keep it reusable in non-i18n contexts.
+
 const accentMap: Record<NonNullable<StatCardProps['accent']>, string> = {
   green: 'from-emerald-500/80 to-emerald-400/60 text-inverse',
   red: 'from-rose-500/80 to-rose-400/60 text-inverse',

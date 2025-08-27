@@ -10,8 +10,11 @@ import { useAuth } from '@/state/AuthContext';
 import { createWorkspaceInviteWithInfo, listWorkspaceInvites, listAuditEntries, acceptInvite, declineInvite, listUserIncomingInvites, getWorkspace, deleteWorkspaceInvite, removeAcceptedInvite } from '@/lib/workspaceAdapter';
 import Confirm from '@/components/Confirm';
 import React from 'react';
+import { useI18n } from '@/state/I18nContext';
+import { useToast } from '@/state/ToastContext';
 
 export default function Config() {
+  const { t } = useI18n();
   const { expenses, budgets, settings, dispatch } = useTracker();
   const { activeWorkspaceId, activeWorkspace, cloudSyncEnabled } = useWorkspace();
   const { user } = useAuth();
@@ -64,6 +67,7 @@ export default function Config() {
     a.download = `tracker-export-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
   };
+  const { push: pushToast } = useToast();
   const onImport: React.ChangeEventHandler<HTMLInputElement> = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -79,14 +83,14 @@ export default function Config() {
             version: INITIAL_STATE.version,
           };
           dispatch({ type: 'HYDRATE_STATE', payload: merged });
-          alert('Import completato');
+          pushToast(t('notify.import.success'), 'success');
         } else {
-          alert('Formato non valido');
+          pushToast(t('notify.import.invalidFormat'), 'error');
         }
       } catch {
-        alert('JSON invalido');
+        pushToast(t('notify.import.invalidJson'), 'error');
       }
-    }).catch(() => alert('Lettura file fallita'));
+    }).catch(() => pushToast(t('notify.import.readError'), 'error'));
   };
   const inviteEmailRef = React.useRef<HTMLInputElement | null>(null);
   const createInvite = async () => {
@@ -98,24 +102,20 @@ export default function Config() {
       inviteEmailRef.current.value = '';
       const data = await listWorkspaceInvites(activeWorkspaceId);
       setInvites(data);
-      setToast(duplicated ? 'Invito già esistente (link aggiornato).' : 'Invito creato.');
-    } catch { alert('Errore invito'); }
+      pushToast(duplicated ? t('notify.invite.duplicate') : t('notify.invite.created'), duplicated ? 'info' : 'success');
+    } catch { pushToast(t('notify.invite.error'), 'error'); }
   };
-  const [toast, setToast] = React.useState<string>('');
+  // removed local toast state in favor of global ToastContext
   const [confirmOpen, setConfirmOpen] = React.useState(false);
   const [confirmTarget, setConfirmTarget] = React.useState<Invite | null>(null);
   const [confirmMode, setConfirmMode] = React.useState<'delete-pending' | 'remove-accepted' | null>(null);
-  React.useEffect(() => {
-    if (!toast) return;
-    const t = setTimeout(() => setToast(''), 3000);
-    return () => clearTimeout(t);
-  }, [toast]);
+  // removed obsolete local toast effect
   return (
     <>
       <main className="mx-auto max-w-7xl p-6 md:p-10 space-y-8">
         <header className="space-y-2 fade-in">
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight heading-gradient">Configurazione Movimenti</h1>
-          <p className="text-sm text-neutral-800 dark:text-neutral-400">Crea e modifica spese una tantum o ricorrenti e gestisci i budget mensili. Questa sezione configura i dati che alimentano i movimenti.</p>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight heading-gradient">{t('page.config.title')}</h1>
+          <p className="text-sm text-neutral-800 dark:text-neutral-400">{t('page.config.desc')}</p>
         </header>
         <section className="grid gap-6 md:gap-8 md:grid-cols-2 lg:grid-cols-3">
           <div className="space-y-6 col-span-1">
@@ -136,23 +136,23 @@ export default function Config() {
               <ExpenseList />
             </div>
             <div className="glass-panel p-4 mt-6 fade-in" style={{ animationDelay: '.15s' }}>
-              <h2 className="font-semibold mb-2 text-sm">Workspace & Sync</h2>
+              <h2 className="font-semibold mb-2 text-sm">{t('config.section.workspace')}</h2>
               <div className="text-[12px] mb-4 space-y-1">
-                <div><strong>Workspace:</strong> {activeWorkspace?.name || '—'} {cloudSyncEnabled ? '(cloud sync attivo)' : '(solo locale)'}</div>
-                <div><strong>ID:</strong> {activeWorkspaceId || '—'}</div>
+                <div><strong>{t('config.workspace.label')}:</strong> {activeWorkspace?.name || '—'} {cloudSyncEnabled ? t('config.workspace.cloudOn') : t('config.workspace.cloudOff')}</div>
+                <div><strong>{t('config.workspace.id')}:</strong> {activeWorkspaceId || '—'}</div>
               </div>
               <div className="flex gap-2 items-center mb-4 flex-wrap text-[12px]">
-                <button onClick={onExport} className="glass-button glass-button--sm">Export JSON</button>
+                <button onClick={onExport} className="glass-button glass-button--sm">{t('config.export')}</button>
                 <label className="glass-button glass-button--sm cursor-pointer inline-flex items-center gap-1">
-                  <span>Import JSON</span>
+                  <span>{t('config.import')}</span>
                   <input type="file" accept="application/json" onChange={onImport} className="hidden" />
                 </label>
               </div>
               <div className="glass-divider" />
-              <h3 className="font-semibold mb-2 text-sm">Inviti Workspace</h3>
+              <h3 className="font-semibold mb-2 text-sm">{t('config.invites.title')}</h3>
               <div className="flex gap-2 mb-3">
-                <input ref={inviteEmailRef} type="email" placeholder="email" className="glass-input glass-input--sm flex-1" />
-                <button onClick={createInvite} className="glass-button glass-button--sm">Invita</button>
+                <input ref={inviteEmailRef} type="email" placeholder={t('config.invites.emailPlaceholder')} className="glass-input glass-input--sm flex-1" />
+                <button onClick={createInvite} className="glass-button glass-button--sm">{t('config.invites.inviteButton')}</button>
               </div>
               <ul className="space-y-1 text-[12px] max-h-40 overflow-auto glass-scroll pr-1">
                 {invites.map(inv => {
@@ -165,42 +165,42 @@ export default function Config() {
                     <li key={inv.id} className="flex justify-between items-center gap-2 py-1 border-b border-white/30 dark:border-white/10 last:border-none">
                       <div className="flex flex-col flex-1 min-w-0">
                         <span className="truncate">{inv.email}</span>
-                        <span className="text-[10px] opacity-60">{inv.invitedBy === user?.uid ? 'inviato da te' : `by ${inv.invitedBy.slice(0, 6)}`}</span>
+                        <span className="text-[10px] opacity-60">{inv.invitedBy === user?.uid ? t('config.invites.sentByYou') : `${t('config.invites.by')} ${inv.invitedBy.slice(0, 6)}`}</span>
                         {inviteUrl && (
                           <button
                             type="button"
-                            onClick={() => { navigator.clipboard.writeText(inviteUrl).then(() => setToast('Link copiato')); }}
+                            onClick={() => { navigator.clipboard.writeText(inviteUrl).then(() => pushToast(t('notify.link.copied'), 'info')); }}
                             className="text-[10px] text-blue-600 dark:text-blue-400 mt-1 text-left underline truncate"
                           >{inviteUrl}</button>
                         )}
                       </div>
-                      <span className="text-xs px-2 py-0.5 rounded bg-white/40 dark:bg-white/10 capitalize">{inv.status}</span>
+                      <span className="text-xs px-2 py-0.5 rounded bg-white/40 dark:bg-white/10 capitalize">{t(`invite.status.${inv.status}`)}</span>
                       {canAct && (
                         <div className="flex gap-1">
                           <button
-                            onClick={async () => { await acceptInvite(inv.id, user!.uid); const data = await listWorkspaceInvites(activeWorkspaceId!); setInvites(data as Invite[]); }}
+                            onClick={async () => { await acceptInvite(inv.id, user!.uid); const data = await listWorkspaceInvites(activeWorkspaceId!); setInvites(data as Invite[]); pushToast(t('config.invite.accept'), 'success'); }}
                             className="glass-button glass-button--xs"
-                          >Accetta</button>
+                          >{t('config.invite.accept')}</button>
                           <button
-                            onClick={async () => { await declineInvite(inv.id); const data = await listWorkspaceInvites(activeWorkspaceId!); setInvites(data as Invite[]); }}
+                            onClick={async () => { await declineInvite(inv.id); const data = await listWorkspaceInvites(activeWorkspaceId!); setInvites(data as Invite[]); pushToast(t('config.invite.decline'), 'info'); }}
                             className="glass-button glass-button--xs"
-                          >Rifiuta</button>
+                          >{t('config.invite.decline')}</button>
                         </div>
                       )}
                       {(canDeletePending || canRemoveAccepted) && (
                         <button
                           onClick={() => { setConfirmTarget(inv); setConfirmMode(canDeletePending ? 'delete-pending' : 'remove-accepted'); setConfirmOpen(true); }}
                           className="glass-button glass-button--xs"
-                          title={canDeletePending ? 'Elimina invito' : 'Rimuovi membro'}
+                          title={canDeletePending ? t('config.invite.delete.titleAttr') : t('config.member.remove.titleAttr')}
                         >✕</button>
                       )}
                     </li>
                   );
                 })}
-                {!invites.length && <li className="opacity-60">Nessun invito</li>}
+                {!invites.length && <li className="opacity-60">{t('config.invites.none')}</li>}
               </ul>
               <div className="glass-divider" />
-              <h3 className="font-semibold mb-2 text-sm">I tuoi Inviti in Arrivo</h3>
+              <h3 className="font-semibold mb-2 text-sm">{t('config.incoming.title')}</h3>
               <ul className="space-y-1 text-[12px] max-h-40 overflow-auto glass-scroll pr-1">
                 {incomingInvites.map(inv => {
                   const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
@@ -210,35 +210,35 @@ export default function Config() {
                     <li key={inv.id} className="flex flex-col gap-0.5 py-1 border-b border-white/30 dark:border-white/10 last:border-none">
                       <div className="flex justify-between items-center">
                         <span className="truncate font-medium">{wsName}</span>
-                        <span className="text-xs px-2 py-0.5 rounded bg-white/40 dark:bg-white/10 capitalize">{inv.status}</span>
+                        <span className="text-xs px-2 py-0.5 rounded bg-white/40 dark:bg-white/10 capitalize">{t(`invite.status.${inv.status}`)}</span>
                       </div>
-                      <span className="text-[10px] opacity-70">Invitato come: {inv.email}</span>
+                      <span className="text-[10px] opacity-70">{t('config.incoming.invitedAs')}: {inv.email}</span>
                       {inviteUrl && (
                         <button
                           type="button"
-                          onClick={() => { navigator.clipboard.writeText(inviteUrl).then(() => setToast('Link copiato')); }}
+                          onClick={() => { navigator.clipboard.writeText(inviteUrl).then(() => pushToast(t('notify.link.copied'), 'info')); }}
                           className="text-[10px] text-blue-600 dark:text-blue-400 mt-1 text-left underline truncate"
                         >{inviteUrl}</button>
                       )}
                       {inv.status === 'pending' && user && (
                         <div className="flex gap-1 mt-1">
                           <button
-                            onClick={async () => { await acceptInvite(inv.id, user.uid); const inData = await listUserIncomingInvites(user.email!); setIncomingInvites(inData as Invite[]); }}
+                            onClick={async () => { await acceptInvite(inv.id, user.uid); const inData = await listUserIncomingInvites(user.email!); setIncomingInvites(inData as Invite[]); pushToast(t('config.invite.accept'), 'success'); }}
                             className="glass-button glass-button--xs"
-                          >Accetta</button>
+                          >{t('config.invite.accept')}</button>
                           <button
-                            onClick={async () => { await declineInvite(inv.id); const inData = await listUserIncomingInvites(user.email!); setIncomingInvites(inData as Invite[]); }}
+                            onClick={async () => { await declineInvite(inv.id); const inData = await listUserIncomingInvites(user.email!); setIncomingInvites(inData as Invite[]); pushToast(t('config.invite.decline'), 'info'); }}
                             className="glass-button glass-button--xs"
-                          >Rifiuta</button>
+                          >{t('config.invite.decline')}</button>
                         </div>
                       )}
                     </li>
                   );
                 })}
-                {!incomingInvites.length && <li className="opacity-60">Nessun invito in arrivo</li>}
+                {!incomingInvites.length && <li className="opacity-60">{t('config.incoming.none')}</li>}
               </ul>
               <div className="glass-divider" />
-              <h3 className="font-semibold mb-2 text-sm">Audit Log (ultimi)</h3>
+              <h3 className="font-semibold mb-2 text-sm">{t('config.audit.title')}</h3>
               <ul className="space-y-1 text-[11px] max-h-40 overflow-auto glass-scroll pr-1">
                 {audit.map(entry => (
                   <li key={entry.id} className="flex justify-between gap-2 py-0.5 border-b border-white/30 dark:border-white/10 last:border-none">
@@ -246,22 +246,17 @@ export default function Config() {
                     <span className="opacity-60 font-mono">{new Date(entry.createdAt).toLocaleTimeString()}</span>
                   </li>
                 ))}
-                {!audit.length && <li className="opacity-60">Nessun log</li>}
+                {!audit.length && <li className="opacity-60">{t('config.audit.none')}</li>}
               </ul>
             </div>
           </div>
         </section>
       </main>
-      {toast && (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-neutral-900 text-white/90 dark:bg-white/90 dark:text-neutral-900 px-4 py-2 rounded shadow-lg text-sm fade-in">
-          {toast}
-        </div>
-      )}
       <Confirm
         open={confirmOpen}
-        title={confirmMode === 'remove-accepted' ? 'Rimuovere il membro dal workspace?' : 'Eliminare questo invito?'}
-        description={confirmMode === 'remove-accepted' ? 'Il membro perderà accesso al workspace (può essere reinvitato).' : 'Questa azione rimuove l\'invito. Potrai inviarne uno nuovo in seguito.'}
-        confirmLabel={confirmMode === 'remove-accepted' ? 'Rimuovi' : 'Elimina'}
+        title={confirmMode === 'remove-accepted' ? t('config.confirm.removeMember.title') : t('config.confirm.deleteInvite.title')}
+        description={confirmMode === 'remove-accepted' ? t('config.confirm.removeMember.desc') : t('config.confirm.deleteInvite.desc')}
+        confirmLabel={confirmMode === 'remove-accepted' ? t('config.confirm.removeMember.confirm') : t('config.confirm.deleteInvite.confirm')}
         variant={confirmMode === 'remove-accepted' ? 'danger' : 'neutral'}
         onCancel={() => { setConfirmOpen(false); setConfirmTarget(null); setConfirmMode(null); }}
         onConfirm={async () => {
@@ -269,10 +264,10 @@ export default function Config() {
           try {
             if (confirmMode === 'delete-pending') {
               await deleteWorkspaceInvite(confirmTarget.id, user.uid);
-              setToast('Invito eliminato');
+              pushToast(t('notify.invite.deleted'), 'success');
             } else if (confirmMode === 'remove-accepted') {
               await removeAcceptedInvite(confirmTarget.id, user.uid);
-              setToast('Membro rimosso');
+              pushToast(t('notify.member.removed'), 'success');
             }
             const data = await listWorkspaceInvites(activeWorkspaceId);
             setInvites(data);

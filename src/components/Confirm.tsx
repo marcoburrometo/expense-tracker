@@ -1,6 +1,7 @@
 "use client";
 import React, { ReactNode, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useI18n } from '@/state/I18nContext';
 
 interface ConfirmProps {
   open: boolean;
@@ -25,11 +26,11 @@ const variantClass: Record<string, string> = {
 
 export const Confirm: React.FC<ConfirmProps> = ({
   open,
-  title = 'Conferma',
+  title,
   description,
   details,
-  confirmLabel = 'Conferma',
-  cancelLabel = 'Annulla',
+  confirmLabel,
+  cancelLabel,
   variant = 'danger',
   onConfirm,
   onCancel,
@@ -37,6 +38,7 @@ export const Confirm: React.FC<ConfirmProps> = ({
   autoFocus = true,
   lockScroll = true,
 }) => {
+  const { t } = useI18n();
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (!open) return;
@@ -66,7 +68,7 @@ export const Confirm: React.FC<ConfirmProps> = ({
     <div className="modal-overlay" aria-hidden={!open} data-confirm-root>
       <button
         type="button"
-        aria-label="Chiudi"
+        aria-label={t('confirm.close')}
         className="absolute inset-0 w-full h-full cursor-default bg-transparent"
         onClick={onCancel}
         onKeyDown={(e) => { if (e.key === 'Escape' || e.key === 'Enter') { onCancel(); } }}
@@ -74,7 +76,7 @@ export const Confirm: React.FC<ConfirmProps> = ({
       />
       <dialog open aria-labelledby="confirm-title" className="modal-panel glass-panel glass-panel--pure modal-enter w-full max-w-md m-0 flex flex-col p-5 space-y-4 bg-transparent max-h-[85vh]">
         <div className="space-y-2 flex-1 flex flex-col min-h-0">
-          <h2 id="confirm-title" className="font-semibold text-lg">{title}</h2>
+          <h2 id="confirm-title" className="font-semibold text-lg">{title || t('confirm.title')}</h2>
           {description && <div className="text-xs text-muted leading-relaxed">{description}</div>}
           {details && (
             <div className="text-[11px] glass-panel glass-panel--subtle p-2 flex flex-col gap-0.5 max-h-[50vh] overflow-auto glass-scroll">
@@ -83,8 +85,8 @@ export const Confirm: React.FC<ConfirmProps> = ({
           )}
         </div>
         <div className="flex justify-end gap-2 pt-1">
-          {cancelLabel && <button type="button" onClick={onCancel} className="glass-button glass-button--sm pressable">{cancelLabel}</button>}
-          <button type="button" autoFocus={autoFocus} disabled={disabled} onClick={onConfirm} className={`${variantClass[variant]} glass-button--sm pressable disabled:opacity-50 disabled:cursor-not-allowed`}>{confirmLabel}</button>
+          {(cancelLabel !== '') && <button type="button" onClick={onCancel} className="glass-button glass-button--sm pressable">{cancelLabel || t('confirm.cancel')}</button>}
+          <button type="button" autoFocus={autoFocus} disabled={disabled} onClick={onConfirm} className={`${variantClass[variant]} glass-button--sm pressable disabled:opacity-50 disabled:cursor-not-allowed`}>{confirmLabel || t('confirm.ok')}</button>
         </div>
       </dialog>
     </div>

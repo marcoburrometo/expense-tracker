@@ -4,6 +4,7 @@ import { GlassPanel } from './GlassPanel';
 import { useTracker } from '@/state/TrackerContext';
 import { AnyExpense, RecurringExpenseTemplate, isTemplate } from '@/domain/types';
 import { useMovementFilters } from '@/state/MovementFiltersContext';
+import { useI18n } from '@/state/I18nContext';
 
 interface Point { date: string; balance: number; projected?: boolean }
 
@@ -11,6 +12,7 @@ export const LedgerChart: React.FC = () => {
   const { expenses } = useTracker();
   const { from, to, includeProj, smooth, update, dir, category, q } = useMovementFilters();
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
+  const { t } = useI18n();
 
   // Base chronological items (actual only)
   const baseItems: (Exclude<AnyExpense, { type: 'recurring-template' }>)[] = useMemo(() => (
@@ -161,15 +163,15 @@ export const LedgerChart: React.FC = () => {
       <div className="flex flex-wrap gap-3 items-end text-xs">
         <label className="flex items-center gap-1 select-none cursor-pointer">
           <input type="checkbox" checked={includeProj} onChange={e => update({ includeProj: e.target.checked })} />
-          <span className="text-xs">Proiezioni</span>
+          <span className="text-xs">{t('chart.projections')}</span>
         </label>
         <label className="flex items-center gap-1 select-none cursor-pointer">
           <input type="checkbox" checked={smooth} onChange={e => update({ smooth: e.target.checked })} />
-          <span className="text-xs">Smooth</span>
+          <span className="text-xs">{t('chart.smooth')}</span>
         </label>
         <div className="ml-auto flex gap-4 text-neutral-500">
-          <span className="hidden sm:inline">Punti: {points.length}</span>
-          {points.length > 0 && <span>Ultimo: € {points[points.length - 1].balance.toFixed(2)}</span>}
+          <span className="hidden sm:inline">{t('chart.points')}: {points.length}</span>
+          {points.length > 0 && <span>{t('chart.last')}: € {points[points.length - 1].balance.toFixed(2)}</span>}
         </div>
       </div>
       <div className="relative w-full overflow-hidden">
@@ -218,16 +220,16 @@ export const LedgerChart: React.FC = () => {
             >
               <div className="font-mono tracking-tight">{hoverPoint.date}</div>
               <div className="font-semibold text-[11px] md:text-[12px]">€ {hoverPoint.balance.toFixed(2)}</div>
-              {hoverPoint.projected && <div className="text-[10px] text-accent mt-0.5">proiezione</div>}
+              {hoverPoint.projected && <div className="text-[10px] text-accent mt-0.5">{t('chart.projectionBadge')}</div>}
             </div>
           );
         })()}
       </div>
       <div className="mt-1 text-[11px] text-muted flex gap-4 flex-wrap">
-        <span>Min: € {min.toFixed(2)}</span>
-        <span>Max: € {max.toFixed(2)}</span>
-        {points.length > 0 && <span>Ultimo reale: € {points.filter(p => !p.projected).slice(-1)[0]?.balance.toFixed(2) || '—'}</span>}
-        {includeProj && points.some(p => p.projected) && <span>Ultimo proiettato: € {points.slice(-1)[0].balance.toFixed(2)}</span>}
+        <span>{t('chart.min')}: € {min.toFixed(2)}</span>
+        <span>{t('chart.max')}: € {max.toFixed(2)}</span>
+        {points.length > 0 && <span>{t('chart.lastReal')}: € {points.filter(p => !p.projected).slice(-1)[0]?.balance.toFixed(2) || '—'}</span>}
+        {includeProj && points.some(p => p.projected) && <span>{t('chart.lastProjected')}: € {points.slice(-1)[0].balance.toFixed(2)}</span>}
       </div>
     </GlassPanel>
   );

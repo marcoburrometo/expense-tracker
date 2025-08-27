@@ -1,5 +1,6 @@
 "use client";
 import React from 'react';
+import { useI18n } from '@/state/I18nContext';
 import { AnyExpense } from '@/domain/types';
 import { DayBucket, isSyntheticInstance } from '@/components/calendarTypes';
 
@@ -14,8 +15,9 @@ export interface DayDetailsProps {
 }
 
 export const DayDetails: React.FC<DayDetailsProps> = ({ activeDay, buckets, sortBy, viewMode, setSortBy, setViewMode, getExpenseDate }) => {
+  const { t } = useI18n();
   const bucket = buckets.get(activeDay);
-  if (!bucket) return <div className="text-[11px] opacity-60">Nessun movimento</div>;
+  if (!bucket) return <div className="text-[11px] opacity-60">{t('calendar.none')}</div>;
   const totalIn = bucket.in;
   const totalOut = bucket.out;
   const net = totalIn - totalOut;
@@ -30,12 +32,12 @@ export const DayDetails: React.FC<DayDetailsProps> = ({ activeDay, buckets, sort
   return (
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap items-center gap-3 text-[11px]">
-        <span>Entrate <strong className="text-success">€ {totalIn.toFixed(2)}</strong></span>
-        <span>Uscite <strong className="text-danger">€ {totalOut.toFixed(2)}</strong></span>
-        <span>Saldo <strong className={net >= 0 ? 'text-success' : 'text-danger'}>{net >= 0 ? '+' : '-'}€ {Math.abs(net).toFixed(2)}</strong></span>
+        <span>{t('calendar.incomeTotal')} <strong className="text-success">€ {totalIn.toFixed(2)}</strong></span>
+        <span>{t('calendar.expenseTotal')} <strong className="text-danger">€ {totalOut.toFixed(2)}</strong></span>
+        <span>{t('stats.balance')} <strong className={net >= 0 ? 'text-success' : 'text-danger'}>{net >= 0 ? '+' : '-'}€ {Math.abs(net).toFixed(2)}</strong></span>
         <div className="ml-auto flex gap-1">
-          <button type="button" onClick={() => setSortBy(s => s === 'date' ? 'amount' : 'date')} className="glass-button glass-button--xs" aria-label="Toggle ordinamento">Ordina: {sortBy === 'date' ? 'Data' : 'Importo'}</button>
-          <button type="button" onClick={() => setViewMode(v => v === 'list' ? 'category' : 'list')} className="glass-button glass-button--xs" aria-label="Toggle vista">Vista: {viewMode === 'list' ? 'Lista' : 'Categorie'}</button>
+          <button type="button" onClick={() => setSortBy(s => s === 'date' ? 'amount' : 'date')} className="glass-button glass-button--xs" aria-label="Toggle sort">{t('mov.sort')}: {sortBy === 'date' ? t('mov.col.date') : t('mov.col.amount')}</button>
+          <button type="button" onClick={() => setViewMode(v => v === 'list' ? 'category' : 'list')} className="glass-button glass-button--xs" aria-label="Toggle view">{t('calendar.viewMode') || 'View'}: {viewMode === 'list' ? (t('calendar.view.list') || 'List') : (t('calendar.view.category') || 'Categories')}</button>
         </div>
       </div>
       {viewMode === 'list' ? (
@@ -46,7 +48,7 @@ export const DayDetails: React.FC<DayDetailsProps> = ({ activeDay, buckets, sort
               <div key={e.id} className="flex justify-between gap-2 text-[11px] py-0.5 border-b last:border-none border-white/30 dark:border-white/10">
                 <span className="flex-1 truncate">
                   {e.description} <span className="opacity-50">[{e.category}]</span>
-                  {synthetic && <span className="ml-1 inline-block px-1 rounded bg-indigo-500/70 text-[9px] text-white align-middle" title="Istanza sintetica ricorrenza">S</span>}
+                  {synthetic && <span className="ml-1 inline-block px-1 rounded bg-indigo-500/70 text-[9px] text-white align-middle" title="synthetic recurrence">S</span>}
                 </span>
                 <span className={`font-mono ${e.direction === 'in' ? 'text-success' : 'text-danger'}`}>{e.direction === 'in' ? '+' : '-'}€ {e.amount.toFixed(2)}</span>
               </div>

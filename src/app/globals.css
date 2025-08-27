@@ -84,6 +84,30 @@ html.dark .app-shell::before {
   }
 }
 
+/* Theme/Icon micro animation */
+@keyframes iconPopFade {
+  0% {
+    opacity: 0;
+    transform: scale(.75) rotate(-8deg);
+    filter: blur(1px);
+  }
+
+  55% {
+    opacity: 1;
+    transform: scale(1.05) rotate(2deg);
+    filter: blur(0);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.icon-pop-fade {
+  animation: iconPopFade .42s cubic-bezier(.16, .8, .3, 1) both;
+}
+
 .nav-drawer-anim {
   animation: navSlideFade .25s cubic-bezier(.16, .8, .24, 1) both;
 }

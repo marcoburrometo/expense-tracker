@@ -8,6 +8,8 @@ import { WorkspaceProvider } from '@/state/WorkspaceContext';
 import { Navbar } from '@/components/Navbar';
 import { QuickAdd } from '@/components/QuickAdd';
 import { ThemeProvider } from '@/state/ThemeContext';
+import { I18nProvider } from '@/state/I18nContext';
+import { ToastProvider } from '@/state/ToastContext';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -45,21 +47,25 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-gradient-to-br from-slate-100 to-slate-200 dark:from-neutral-900 dark:to-neutral-950 text-neutral-900 dark:text-neutral-50`}>
         <div className="app-shell">
           <ThemeProvider>
-            <AuthProvider>
-              <TrackerProvider>
-                <WorkspaceProvider>
-                  <MovementFiltersProvider>
-                    <div className="sticky top-0 z-20 px-4 pt-4">
-                      <Navbar />
-                    </div>
-                    <div className="app-main">
-                      {children}
-                    </div>
-                    <QuickAdd />
-                  </MovementFiltersProvider>
-                </WorkspaceProvider>
-              </TrackerProvider>
-            </AuthProvider>
+            <I18nProvider>
+              <ToastProvider>
+                <AuthProvider>
+                  <TrackerProvider>
+                    <WorkspaceProvider>
+                      <MovementFiltersProvider>
+                        <div className="sticky top-0 z-20 px-4 pt-4">
+                          <Navbar />
+                        </div>
+                        <div className="app-main">
+                          {children}
+                        </div>
+                        <QuickAdd />
+                      </MovementFiltersProvider>
+                    </WorkspaceProvider>
+                  </TrackerProvider>
+                </AuthProvider>
+              </ToastProvider>
+            </I18nProvider>
           </ThemeProvider>
         </div>
       </body>

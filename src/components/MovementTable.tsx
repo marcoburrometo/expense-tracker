@@ -4,6 +4,7 @@ import { Confirm } from '@/components/Confirm';
 import { useTracker } from '@/state/TrackerContext';
 import { AnyExpense, RecurringExpenseTemplate, GeneratedRecurringExpenseInstance, isTemplate } from '@/domain/types';
 import { useMovementFilters } from '@/state/MovementFiltersContext';
+import { useI18n } from '@/state/I18nContext';
 
 interface Row { id: string; date: string; description: string; category: string; direction: 'in' | 'out'; amount: number; balance: number; projected?: boolean; }
 
@@ -22,6 +23,7 @@ export const MovementTable: React.FC = () => {
   const [sortField, setSortField] = useState<'date' | 'amount' | 'balance'>('date');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValues, setEditValues] = useState<{ description: string; amount: string; category: string; direction: 'in' | 'out'; date: string } | null>(null);
+  const { t } = useI18n();
 
   function startEdit(id: string) {
     const target = rows.find(r => r.id === id);
@@ -215,13 +217,13 @@ export const MovementTable: React.FC = () => {
   const headerRight = headerBase + ' text-right';
 
   const deleteTarget = deleteId ? rows.find(r => r.id === deleteId) : null;
-  const confirmDescription = deleteTarget ? <>Confermi l&apos;eliminazione di <span className="font-medium">{deleteTarget.description}</span>? Questa azione è irreversibile.</> : null;
+  const confirmDescription = deleteTarget ? <>{t('mov.delete.confirm')} <span className="font-medium">{deleteTarget.description}</span>? {t('mov.delete.irreversible')}</> : null;
   const confirmDetails = deleteTarget ? (
     <>
-      <div><span className="opacity-70">Data:</span> {deleteTarget.date}</div>
-      <div><span className="opacity-70">Categoria:</span> {deleteTarget.category}</div>
-      <div><span className="opacity-70">Importo:</span> {deleteTarget.direction === 'in' ? '+' : '-'}€ {deleteTarget.amount?.toFixed(2)}</div>
-      <div><span className="opacity-70">Saldo dopo:</span> € {deleteTarget.balance.toFixed(2)}</div>
+      <div><span className="opacity-70">{t('mov.field.date')}:</span> {deleteTarget.date}</div>
+      <div><span className="opacity-70">{t('mov.field.category')}:</span> {deleteTarget.category}</div>
+      <div><span className="opacity-70">{t('mov.field.amount')}:</span> {deleteTarget.direction === 'in' ? '+' : '-'}€ {deleteTarget.amount?.toFixed(2)}</div>
+      <div><span className="opacity-70">{t('mov.field.balanceAfter')}:</span> € {deleteTarget.balance.toFixed(2)}</div>
     </>
   ) : null;
 
@@ -229,43 +231,43 @@ export const MovementTable: React.FC = () => {
     <div data-density={density} className={`flex flex-col h-full min-h-0 glass-panel glass-panel--pure p-2 md:p-3 gap-2 ${density === 'compact' ? 'density-compact' : ''}`}>
       <div className="flex flex-wrap gap-3 items-end text-[11px] md:text-[13px]">
         <div className="flex flex-col">
-          <label htmlFor="mov-from" className="uppercase tracking-wide text-[10px] font-semibold">Da</label>
+          <label htmlFor="mov-from" className="uppercase tracking-wide text-[10px] font-semibold">{t('mov.from')}</label>
           <input id="mov-from" type="date" value={from} onChange={e => update({ from: e.target.value })} className="glass-input" />
         </div>
         <div className="flex flex-col">
-          <label htmlFor="mov-to" className="uppercase tracking-wide text-[10px] font-semibold">A</label>
+          <label htmlFor="mov-to" className="uppercase tracking-wide text-[10px] font-semibold">{t('mov.to')}</label>
           <input id="mov-to" type="date" value={to} onChange={e => update({ to: e.target.value })} className="glass-input" />
         </div>
         <div className="flex flex-col min-w-[140px]">
-          <label htmlFor="mov-dir" className="uppercase tracking-wide text-[10px] font-semibold">Direzione</label>
+          <label htmlFor="mov-dir" className="uppercase tracking-wide text-[10px] font-semibold">{t('mov.direction')}</label>
           <select id="mov-dir" value={dir} onChange={e => update({ dir: e.target.value as 'all' | 'in' | 'out' })} className="glass-input">
-            <option value="all">Entrate + Uscite</option>
-            <option value="in">Solo Entrate</option>
-            <option value="out">Solo Uscite</option>
+            <option value="all">{t('mov.direction.all')}</option>
+            <option value="in">{t('mov.direction.in')}</option>
+            <option value="out">{t('mov.direction.out')}</option>
           </select>
         </div>
         <div className="flex flex-col min-w-[140px]">
-          <label htmlFor="mov-cat" className="uppercase tracking-wide text-[10px] font-semibold">Categoria</label>
+          <label htmlFor="mov-cat" className="uppercase tracking-wide text-[10px] font-semibold">{t('mov.category')}</label>
           <select id="mov-cat" value={category} onChange={e => update({ category: e.target.value })} className="glass-input">
-            <option value="">Tutte</option>
+            <option value="">{t('mov.category.all')}</option>
             {categories.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
         <div className="flex flex-col flex-1 min-w-[160px]">
-          <label htmlFor="mov-search" className="uppercase tracking-wide text-[10px] font-semibold">Cerca</label>
-          <input id="mov-search" placeholder="testo o categoria" value={q} onChange={e => update({ q: e.target.value })} className="glass-input" />
+          <label htmlFor="mov-search" className="uppercase tracking-wide text-[10px] font-semibold">{t('mov.search')}</label>
+          <input id="mov-search" placeholder={t('mov.search.placeholder')} value={q} onChange={e => update({ q: e.target.value })} className="glass-input" />
         </div>
         <div className="flex gap-2 ml-auto items-end">
-          <button onClick={() => setDensity(d => d === 'normal' ? 'compact' : 'normal')} className="glass-button glass-button--sm" aria-label="Toggle densità tabella">Densità: {density === 'normal' ? 'Normale' : 'Compatta'}</button>
-          <button onClick={exportCSV} className="glass-button glass-button--primary glass-button--sm" aria-label="Esporta file CSV">Export</button>
+          <button onClick={() => setDensity(d => d === 'normal' ? 'compact' : 'normal')} className="glass-button glass-button--sm" aria-label="Toggle densità tabella">{t('mov.density')}: {density === 'normal' ? t('mov.density.normal') : t('mov.density.compact')}</button>
+          <button onClick={exportCSV} className="glass-button glass-button--primary glass-button--sm" aria-label="Esporta file CSV">{t('mov.export')}</button>
         </div>
       </div>
       <div className="mov-summary px-2 md:px-3 py-2 glass-panel glass-panel--pure flex gap-4 text-[11px] md:text-xs flex-wrap items-center">
-        <span className="text-success font-medium">Entrate: {nf.format(totals.inc)}</span>
-        <span className="text-danger font-medium">Uscite: {nf.format(totals.out)}</span>
-        <span className={(totals.net >= 0 ? 'text-success' : 'text-danger') + ' font-semibold'}>Saldo Netto: {nf.format(totals.net)}</span>
-        {rows.length > 0 && <span className="text-secondary">Saldo Finale: {nf.format(rows[rows.length - 1].balance)}</span>}
-        <span className="ml-auto opacity-60 text-[10px]">Ordinamento: {sortField} {sortDesc ? '↓' : '↑'}</span>
+        <span className="text-success font-medium">{t('mov.income')}: {nf.format(totals.inc)}</span>
+        <span className="text-danger font-medium">{t('mov.expenses')}: {nf.format(totals.out)}</span>
+        <span className={(totals.net >= 0 ? 'text-success' : 'text-danger') + ' font-semibold'}>{t('mov.net')}: {nf.format(totals.net)}</span>
+        {rows.length > 0 && <span className="text-secondary">{t('mov.finalBalance')}: {nf.format(rows[rows.length - 1].balance)}</span>}
+        <span className="ml-auto opacity-60 text-[10px]">{t('mov.sort')}: {sortField} {sortDesc ? '↓' : '↑'}</span>
       </div>
       <div className={`overflow-auto flex-1 min-h-0 glass-scroll rounded-md border border-white/30 dark:border-white/5 ${density === 'compact' ? 'text-[11px]' : 'text-[12px]'}`}>
         <table className="glass-table w-full">
@@ -278,9 +280,9 @@ export const MovementTable: React.FC = () => {
                 onClick={() => toggleSort('date')}
                 tabIndex={0}
                 onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleSort('date'); } }}
-              >Data</th>
-              <th className={headerBase}>Descrizione</th>
-              <th className="px-2 py-1 text-left hidden md:table-cell">Categoria</th>
+              >{t('mov.col.date')}</th>
+              <th className={headerBase}>{t('mov.col.description')}</th>
+              <th className="px-2 py-1 text-left hidden md:table-cell">{t('mov.col.category')}</th>
               <th
                 className={headerRight}
                 role="columnheader"
@@ -288,7 +290,7 @@ export const MovementTable: React.FC = () => {
                 onClick={() => toggleSort('amount')}
                 tabIndex={0}
                 onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleSort('amount'); } }}
-              >Importo</th>
+              >{t('mov.col.amount')}</th>
               <th
                 className={headerRight + ' hidden sm:table-cell'}
                 role="columnheader"
@@ -296,8 +298,8 @@ export const MovementTable: React.FC = () => {
                 onClick={() => toggleSort('balance')}
                 tabIndex={0}
                 onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleSort('balance'); } }}
-              >Saldo</th>
-              <th className={headerRight}>Azioni</th>
+              >{t('mov.col.balance')}</th>
+              <th className={headerRight}>{t('mov.col.actions')}</th>
             </tr>
           </thead>
           <tbody className="[&_tr]:transition-colors [&_tr:hover]:bg-white/55 dark:[&_tr:hover]:bg-slate-700/35">
@@ -321,7 +323,7 @@ export const MovementTable: React.FC = () => {
                           value={editValues!.description}
                           onChange={e => setEditValues(v => v ? { ...v, description: e.target.value } : v)}
                           className="glass-input glass-input--sm w-full mb-1"
-                          placeholder="Descrizione"
+                          placeholder={t('mov.col.description')}
                         />
                         <div className="flex gap-1 items-center">
                           <input
@@ -329,7 +331,7 @@ export const MovementTable: React.FC = () => {
                             value={editValues!.category}
                             onChange={e => setEditValues(v => v ? { ...v, category: e.target.value } : v)}
                             className="glass-input glass-input--sm text-[10px] flex-1"
-                            placeholder="Categoria"
+                            placeholder={t('mov.col.category')}
                           />
                           <select
                             value={editValues!.direction}
@@ -360,8 +362,8 @@ export const MovementTable: React.FC = () => {
                       </td>
                       <td className="px-2 py-1 text-right font-mono tabular-nums hidden sm:table-cell">{nf.format(r.balance)}</td>
                       <td className="px-2 py-1 text-right whitespace-nowrap flex gap-1 justify-end">
-                        <button onClick={commitEdit} className="glass-button glass-button--sm glass-button--success" aria-label="Salva modifiche">✓</button>
-                        <button onClick={cancelEdit} className="glass-button glass-button--sm glass-button--neutral" aria-label="Annulla modifica">↺</button>
+                        <button onClick={commitEdit} className="glass-button glass-button--sm glass-button--success" aria-label={t('mov.actions.save')}>✓</button>
+                        <button onClick={cancelEdit} className="glass-button glass-button--sm glass-button--neutral" aria-label={t('mov.actions.cancel')}>↺</button>
                       </td>
                     </>
                   ) : (
@@ -370,7 +372,7 @@ export const MovementTable: React.FC = () => {
                       <td className="px-2 py-1 max-w-[260px] md:max-w-[320px]">
                         <span className="block truncate font-medium">{r.description}</span>
                         <span className="md:hidden block text-[10px] opacity-60 mt-0.5">{r.category}</span>
-                        {r.projected && <span className="ml-1 glass-badge badge-future">FUTURO</span>}
+                        {r.projected && <span className="ml-1 glass-badge badge-future">{t('mov.future')}</span>}
                       </td>
                       <td className="px-2 py-1 hidden md:table-cell">{r.category}</td>
                       <td className={`px-2 py-1 text-right font-mono tabular-nums ${amountSigned >= 0 ? 'text-success' : 'text-danger'}`}>{nf.format(amountSigned)}</td>
@@ -380,14 +382,14 @@ export const MovementTable: React.FC = () => {
                           <button
                             onClick={() => startEdit(r.id)}
                             className="glass-button glass-button--xs pressable"
-                            aria-label="Modifica movimento"
+                            aria-label={t('mov.actions.edit')}
                           >✎</button>
                         )}
                         {!r.projected ? (
                           <button
                             onClick={() => { setDeleteId(r.id); setModalOpen(true); }}
                             className="glass-button glass-button--danger glass-button--xs pressable"
-                            aria-label="Elimina movimento"
+                            aria-label={t('mov.actions.delete')}
                           >✕</button>
                         ) : <span className="text-[10px] opacity-40">—</span>}
                       </td>
@@ -398,7 +400,7 @@ export const MovementTable: React.FC = () => {
             })}
             {!rows.length && (
               <tr>
-                <td colSpan={6} className="text-center px-2 py-6 text-neutral-500">Nessun movimento</td>
+                <td colSpan={6} className="text-center px-2 py-6 text-neutral-500">{t('mov.none')}</td>
               </tr>
             )}
           </tbody>
@@ -406,10 +408,10 @@ export const MovementTable: React.FC = () => {
       </div>
       <Confirm
         open={modalOpen && !!deleteTarget}
-        title="Elimina movimento"
+        title={t('mov.delete.title')}
         description={confirmDescription}
         details={confirmDetails}
-        confirmLabel="Elimina"
+        confirmLabel={t('mov.delete.confirmLabel')}
         variant="danger"
         onCancel={() => { setModalOpen(false); setDeleteId(null); }}
         onConfirm={() => { if (deleteTarget) { deleteExpense(deleteTarget.id); } setModalOpen(false); setDeleteId(null); }}

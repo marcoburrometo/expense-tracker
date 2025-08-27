@@ -6,28 +6,30 @@ import { GlassPanel } from './GlassPanel';
 import { useTheme } from '@/state/ThemeContext';
 import { useAuth } from '@/state/AuthContext';
 import { useWorkspace } from '@/state/WorkspaceContext';
+import { useI18n } from '@/state/I18nContext';
 
 interface NavItem { href: string; label: string; match?: (path: string) => boolean }
 
-const links: NavItem[] = [
-  { href: '/', label: 'Movimenti', match: p => p === '/' },
-  { href: '/config', label: 'Config', match: p => p.startsWith('/config') },
-  { href: '/calendar', label: 'Calendario', match: p => p.startsWith('/calendar') },
+interface BaseLink { href: string; key: string; match?: (path: string) => boolean }
+const baseLinks: BaseLink[] = [
+  { href: '/', key: 'nav.movements', match: (p: string) => p === '/' },
+  { href: '/config', key: 'nav.config', match: (p: string) => p.startsWith('/config') },
+  { href: '/calendar', key: 'nav.calendar', match: (p: string) => p.startsWith('/calendar') },
 ];
 
 export const Navbar: React.FC = () => {
   const pathname = usePathname();
-  const { effective, mode, toggle, setMode } = useTheme();
+  const { mode, setMode } = useTheme();
   const { user, loading, signInWithGoogle, logout } = useAuth();
   const { workspaces, activeWorkspaceId, switchWorkspace, createNewWorkspace, cloudSyncEnabled, saving } = useWorkspace();
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement | null>(null);
-  let syncLabel = 'Local';
-  if (cloudSyncEnabled) {
-    syncLabel = saving ? 'Saving…' : 'Synced';
-  }
+  const { t, locale, setLocale } = useI18n();
+  const links: NavItem[] = baseLinks.map(l => ({ href: l.href, label: t(l.key), match: l.match }));
+  let syncLabel = t('sync.local');
+  if (cloudSyncEnabled) syncLabel = saving ? t('sync.saving') : t('sync.synced');
   const onCreateWorkspace = async () => {
-    const name = prompt('Nome nuovo workspace');
+    const name = prompt(t('workspace.newPrompt'));
     if (name) await createNewWorkspace(name);
   };
   const close = useCallback(() => setOpen(false), []);
@@ -96,24 +98,36 @@ export const Navbar: React.FC = () => {
   const renderUserControls = (onClick?: () => void) => (
     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
       <div className="flex items-center gap-1">
+        {(() => {
+          const order: Array<'system' | 'light' | 'dark'> = ['system', 'light', 'dark'];
+          const idx = order.indexOf(mode);
+          const nextMode = order[(idx + 1) % order.length];
+          const icon = mode === 'dark' ? '🌙' : mode === 'light' ? '☀️' : '🖥️';
+          const labelCurrent = mode === 'system' ? t('nav.theme.system') : mode === 'light' ? t('nav.theme.light') : t('nav.theme.dark');
+          const labelNext = nextMode === 'system' ? t('nav.theme.system') : nextMode === 'light' ? t('nav.theme.light') : t('nav.theme.dark');
+          return (
+            <button
+              type="button"
+              onClick={() => { setMode(nextMode); onClick?.(); }}
+              aria-label={`${t('nav.theme.mode')}: ${labelNext}`}
+              title={`${t('nav.theme.mode')}: ${labelCurrent} → ${labelNext}`}
+              className="glass-button glass-button--sm px-2 text-base leading-none"
+              data-theme-switcher
+            >
+              <span key={mode} className="block icon-pop-fade will-change-transform select-none">{icon}</span>
+            </button>
+          );
+        })()}
         <button
-          onClick={() => { toggle(); onClick?.(); }}
-          aria-label="Toggle tema"
-          className="glass-button glass-button--sm pressable font-medium px-3"
-          title={`Tema: ${effective}`}
+          type="button"
+          onClick={() => { setLocale(locale === 'it' ? 'en' : 'it'); onClick?.(); }}
+          aria-label={`${t('nav.language')}: ${t(locale === 'it' ? 'lang.en' : 'lang.it')}`}
+          title={`${t('nav.language')}: ${t(locale === 'it' ? 'lang.en' : 'lang.it')}`}
+          className="glass-button glass-button--sm px-2 text-base leading-none font-emoji"
+          data-flag-switcher
         >
-          {effective === 'dark' ? '🌙' : '☀️'}
+          {locale === 'it' ? '🇮🇹' : '🇺🇸'}
         </button>
-        <select
-          aria-label="Modalità tema"
-          value={mode}
-          onChange={e => { setMode(e.target.value as 'light' | 'dark' | 'system'); onClick?.(); }}
-          className="glass-input glass-input--sm text-[11px] w-[92px]"
-        >
-          <option value="system">Sistema</option>
-          <option value="light">Chiaro</option>
-          <option value="dark">Scuro</option>
-        </select>
       </div>
       {user ? (
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
@@ -123,19 +137,19 @@ export const Navbar: React.FC = () => {
               value={activeWorkspaceId || ''}
               onChange={e => { switchWorkspace(e.target.value); onClick?.(); }}
               className="glass-input glass-input--sm text-[11px] max-w-[190px]"
-              title="Seleziona workspace (suffix ' (esterno)' = non di tua proprietà)"
+              title="Workspace"
             >
               {workspaces.map(w => {
                 const external = user && w.ownerId !== user.uid;
-                const label = external ? `${w.name} (esterno)` : w.name;
+                const label = external ? `${w.name} ${t('workspace.externalSuffix')}` : w.name;
                 return <option value={w.id} key={w.id}>{label}</option>;
               })}
             </select>
           )}
           <div className="flex items-center gap-2">
-            <button onClick={async () => { await onCreateWorkspace(); onClick?.(); }} className="glass-button glass-button--sm" aria-label="Nuovo workspace">＋WS</button>
+            <button onClick={async () => { await onCreateWorkspace(); onClick?.(); }} className="glass-button glass-button--sm" aria-label={t('nav.newWorkspace')}>＋WS</button>
             <span className={`glass-badge text-[9px] tracking-wide ${cloudSyncEnabled ? 'text-success' : 'text-tertiary'}`}>{syncLabel}</span>
-            <button onClick={() => { logout(); onClick?.(); }} disabled={loading} className="glass-button glass-button--sm" aria-label="Logout">Logout</button>
+            <button onClick={() => { logout(); onClick?.(); }} disabled={loading} className="glass-button glass-button--sm" aria-label={t('nav.logout')}>{t('nav.logout')}</button>
           </div>
         </div>
       ) : (
@@ -143,9 +157,9 @@ export const Navbar: React.FC = () => {
           onClick={() => { signInWithGoogle(); onClick?.(); }}
           disabled={loading}
           className="glass-button glass-button--primary glass-button--sm px-4"
-          aria-label="Login Google"
+          aria-label="Google Login"
         >
-          {loading ? '...' : 'Login'}
+          {loading ? '...' : t('nav.login')}
         </button>
       )}
     </div>
@@ -172,7 +186,7 @@ export const Navbar: React.FC = () => {
       {/* Hamburger */}
       <button
         onClick={() => setOpen(o => !o)}
-        aria-label="Menu"
+        aria-label={t('nav.menu')}
         aria-expanded={open}
         className="nav-hamburger sm:hidden ml-auto glass-button glass-button--sm px-3"
       >
@@ -192,7 +206,7 @@ export const Navbar: React.FC = () => {
             {renderLinks(close)}
             <div className="border-t border-white/10 pt-2" />
             {renderUserControls(close)}
-            <button onClick={close} className="glass-button glass-button--sm mt-2 self-end" aria-label="Chiudi menu">Chiudi</button>
+            <button onClick={close} className="glass-button glass-button--sm mt-2 self-end" aria-label={t('nav.closeMenu')}>{t('nav.closeMenu')}</button>
           </GlassPanel>
         </div>
       )}

@@ -5,6 +5,7 @@ import { Confirm } from '@/components/Confirm';
 import { useMonthlyTotals, useTracker } from '@/state/TrackerContext';
 import { mergeCategories } from '@/domain/categories';
 import { Budget } from '@/domain/types';
+import { useI18n } from '@/state/I18nContext';
 
 export const BudgetSummary: React.FC = () => {
   const { budgets, deleteBudget, updateBudget, expenses } = useTracker();
@@ -12,6 +13,7 @@ export const BudgetSummary: React.FC = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [form, setForm] = useState<{ category: string; limit: string }>({ category: '', limit: '' });
+  const { t } = useI18n();
   function startEdit(b: Budget) {
     setEditingId(b.id);
     setForm({ category: b.category, limit: String(b.limit) });
@@ -28,7 +30,7 @@ export const BudgetSummary: React.FC = () => {
       <div className="skeleton h-3 w-20" />
       <div className="skeleton h-3 w-28" />
       <div className="skeleton h-2 w-full" />
-      <div className="text-[11px] opacity-60">Nessun budget definito.</div>
+      <div className="text-[11px] opacity-60">{t('budget.none')}</div>
     </div>
   </GlassPanel>;
   const deleteTarget = confirmDeleteId ? budgets.find(b => b.id === confirmDeleteId) : null;
@@ -42,7 +44,7 @@ export const BudgetSummary: React.FC = () => {
   return (
     <>
       <GlassPanel variant="pure" className="p-5 w-full max-w-md space-y-2 fade-in">
-        <h2 className="font-semibold text-lg mb-2">Budgets (Mese Corrente)</h2>
+        <h2 className="font-semibold text-lg mb-2">{t('budget.titleCurrentMonth')}</h2>
         <ul className="space-y-2 text-sm">
           {budgets.map(b => {
             const spent = totals[b.category] || 0;
@@ -55,11 +57,11 @@ export const BudgetSummary: React.FC = () => {
                     <div className="flex justify-between items-center">
                       <span className="font-medium">{b.category}</span>
                       <div className="flex gap-2">
-                        <button onClick={() => startEdit(b)} className="glass-button glass-button--primary text-[10px] pressable">Modifica</button>
-                        <button onClick={() => setConfirmDeleteId(b.id)} className="glass-button glass-button--danger text-[10px] pressable">Elimina</button>
+                        <button onClick={() => startEdit(b)} className="glass-button glass-button--primary text-[10px] pressable">{t('budget.edit')}</button>
+                        <button onClick={() => setConfirmDeleteId(b.id)} className="glass-button glass-button--danger text-[10px] pressable">{t('budget.delete')}</button>
                       </div>
                     </div>
-                    <div className="text-xs text-muted">€ {spent.toFixed(2)} / € {b.limit.toFixed(2)} {remaining >= 0 ? `(restano € ${remaining.toFixed(2)})` : `(superato di € ${(Math.abs(remaining)).toFixed(2)})`}</div>
+                    <div className="text-xs text-muted">€ {spent.toFixed(2)} / € {b.limit.toFixed(2)} {remaining >= 0 ? `(${t('budget.remaining')} € ${remaining.toFixed(2)})` : `(${t('budget.over')} € ${(Math.abs(remaining)).toFixed(2)})`}</div>
                     <div className="h-2 bg-neutral-200 dark:bg-neutral-600 rounded overflow-hidden mt-1">
                       <div className={`${remaining < 0 ? 'bg-red-500' : 'bg-green-500'} h-full`} style={{ width: pct + '%' }} />
                     </div>
@@ -72,8 +74,8 @@ export const BudgetSummary: React.FC = () => {
                     </select>
                     <input className="glass-input" type="number" step="0.01" value={form.limit} onChange={e => setForm(f => ({ ...f, limit: e.target.value }))} />
                     <div className="flex gap-2 justify-end">
-                      <button type="button" onClick={() => setEditingId(null)} className="glass-button pressable">Annulla</button>
-                      <button type="submit" className="glass-button glass-button--success pressable">Salva</button>
+                      <button type="button" onClick={() => setEditingId(null)} className="glass-button pressable">{t('generic.cancel')}</button>
+                      <button type="submit" className="glass-button glass-button--success pressable">{t('generic.save')}</button>
                     </div>
                   </form>
                 )}
@@ -84,10 +86,10 @@ export const BudgetSummary: React.FC = () => {
       </GlassPanel>
       <Confirm
         open={!!deleteTarget}
-        title="Elimina budget"
-        description={deleteTarget ? <>Confermi l&apos;eliminazione del budget selezionato? I progressi del mese andranno persi.</> : null}
+        title={t('budget.delete.title')}
+        description={deleteTarget ? <>{t('budget.delete.confirm')}</> : null}
         details={confirmDetails}
-        confirmLabel="Elimina"
+        confirmLabel={t('mov.delete.confirmLabel')}
         variant="danger"
         onCancel={() => setConfirmDeleteId(null)}
         onConfirm={() => { if (deleteTarget) { deleteBudget(deleteTarget.id); } setConfirmDeleteId(null); }}
