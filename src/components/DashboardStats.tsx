@@ -1,26 +1,57 @@
 "use client";
 import React from 'react';
-import { useTracker, useMonthlyTotals } from '@/state/TrackerContext';
+import { useTracker } from '@/state/TrackerContext';
 import { StatCard } from './StatCard';
+import { IconArrowUp, IconArrowDown, IconBalance, IconGrid, IconLoop } from './icons';
 import { useI18n } from '@/state/I18nContext';
 
 export const DashboardStats: React.FC = () => {
   const { expenses } = useTracker();
-  const monthly = useMonthlyTotals();
-  const monthTotalOut = Object.values(monthly).reduce((a, b) => a + b, 0);
-  const totalIn = expenses.filter(e => e.direction === 'in').reduce((s, e) => s + e.amount, 0);
-  const totalOut = expenses.filter(e => e.direction === 'out').reduce((s, e) => s + e.amount, 0);
-  const net = totalIn - totalOut;
-  const recurringCount = expenses.filter(e => e.type === 'recurring-template').length;
   const { t } = useI18n();
+
+  // Current month boundaries
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+
+  // Only expenses with a concrete date (exclude recurring templates)
+  const datedExpenses = expenses.filter(e => e.type === 'oneoff' || e.type === 'recurring-instance');
+  const monthExpenses = datedExpenses.filter(e => {
+    const d = new Date(e.date);
+    return d >= monthStart && d <= monthEnd;
+  });
+
+  const totalIn = monthExpenses.filter(e => e.direction === 'in').reduce((s, e) => s + e.amount, 0);
+  const totalOut = monthExpenses.filter(e => e.direction === 'out').reduce((s, e) => s + e.amount, 0);
+  const net = totalIn - totalOut;
+
+  // Active recurring templates for this month (startDate <= end of month and (no endDate or endDate >= start of month))
+  const recurringCount = expenses.filter(e => {
+    if (e.type !== 'recurring-template') return false;
+    const starts = new Date(e.startDate);
+    if (starts > monthEnd) return false;
+    if (e.endDate) {
+      const ends = new Date(e.endDate);
+      if (ends < monthStart) return false;
+    }
+    return true;
+  }).length;
+
+  const incomeCount = monthExpenses.filter(e => e.direction === 'in').length;
+  const expenseCount = monthExpenses.filter(e => e.direction === 'out').length;
+
   return (
-    <div className="grid gap-3 sm:gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
-      <StatCard label={t('stats.incomeTotal')} value={`€ ${totalIn.toFixed(2)}`} accent="green" hint={t('stats.incomeTotal') + ' · ' + t('stats.total')} />
-      <StatCard label={t('stats.expenseTotal')} value={`€ ${totalOut.toFixed(2)}`} accent="red" hint={t('stats.expenseTotal') + ' · ' + t('stats.total')} />
-      <StatCard label={t('stats.balance')} value={`€ ${net.toFixed(2)}`} accent={net >= 0 ? 'green' : 'red'} hint={t('stats.balance.hint')} />
-      <StatCard label={t('stats.categories')} value={new Set(expenses.map(e => e.category)).size} accent="indigo" hint={t('stats.categories.hint')} />
-      <StatCard label={t('stats.recurring')} value={recurringCount} accent="blue" hint={t('stats.recurring.hint')} />
-      <StatCard label={t('stats.monthSpend')} value={`€ ${monthTotalOut.toFixed(2)}`} accent="indigo" hint={t('stats.monthSpend.hint')} />
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <span className="text-[11px] font-medium uppercase tracking-wide opacity-70">{t('stats.scope.currentMonth')}</span>
+      </div>
+      <div className="grid gap-3 sm:gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-5 auto-rows-fr">
+        <StatCard size="compact" label={t('stats.incomeTotal')} value={`€ ${totalIn.toFixed(2)}`} accent="green" icon={<IconArrowUp className="scale-90" />} hint={`${incomeCount} ${t('stats.income.count')}`} />
+        <StatCard size="compact" label={t('stats.expenseTotal')} value={`€ ${totalOut.toFixed(2)}`} accent="red" icon={<IconArrowDown className="scale-90" />} hint={`${expenseCount} ${t('stats.expense.count')}`} />
+        <StatCard size="compact" label={t('stats.balance')} value={`€ ${net.toFixed(2)}`} accent={net >= 0 ? 'green' : 'red'} hint={t('stats.balance.hint')} icon={<IconBalance className="scale-90" />} />
+        <StatCard size="compact" label={t('stats.categories')} value={String(new Set(monthExpenses.map(e => e.category)).size)} accent="indigo" hint={t('stats.categories.hint')} icon={<IconGrid className="scale-90" />} />
+        <StatCard size="compact" label={t('stats.recurring')} value={String(recurringCount)} accent="blue" hint={t('stats.recurring.hint')} icon={<IconLoop className="scale-90" />} />
+      </div>
     </div>
   );
 };

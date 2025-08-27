@@ -11,6 +11,8 @@ import { ThemeProvider } from '@/state/ThemeContext';
 import { I18nProvider } from '@/state/I18nContext';
 import { ToastProvider } from '@/state/ToastContext';
 import AnalyticsTracker from '@/components/AnalyticsTracker';
+import React, { Suspense } from 'react';
+import InitialAppLoader from '@/components/InitialAppLoader';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -55,13 +57,16 @@ export default function RootLayout({
                   <TrackerProvider>
                     <WorkspaceProvider>
                       <MovementFiltersProvider>
+                        <InitialAppLoader />
                         <div className="sticky top-0 z-20 px-4 pt-4">
                           <Navbar />
                         </div>
                         <div className="app-main">
                           {children}
                         </div>
-                        <AnalyticsTracker measurementId={gaId} />
+                        <Suspense fallback={null}>
+                          <AnalyticsTracker measurementId={gaId} />
+                        </Suspense>
                         <QuickAdd />
                       </MovementFiltersProvider>
                     </WorkspaceProvider>
