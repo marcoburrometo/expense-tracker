@@ -1,3 +1,5 @@
+# Check PR Flow by EdgeRoad
+
 # JANET – Just ANother Expense Tracker
 
 > Intelligent budgeting, recurring calendar, collaborative multi‑workspaces. Advanced glass UI built on Next.js.
