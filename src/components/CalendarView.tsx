@@ -163,25 +163,29 @@ export const CalendarView: React.FC = () => {
 
   return (
     <div className="glass-panel glass-panel--pure p-4 flex flex-col gap-4 fade-in">
-      <div className="flex items-center gap-2 justify-between flex-wrap">
+      <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2 flex-wrap">
-          <button onClick={prev} className="glass-button glass-button--sm pressable" aria-label={t('calendar.prevMonth')}>←</button>
-          <button onClick={today} className="glass-button glass-button--sm pressable" aria-label={t('calendar.today')}>{t('calendar.today')}</button>
-          <button onClick={next} className="glass-button glass-button--sm pressable" aria-label={t('calendar.nextMonth')}>→</button>
-          <select value={cursor.getMonth()} onChange={e => setCursor(new Date(cursor.getFullYear(), parseInt(e.target.value), 1))} className="glass-input glass-input--sm text-[11px]" aria-label={t('calendar.month')}>
-            {Array.from({ length: 12 }).map((_, m) => { const label = new Date(2000, m, 1).toLocaleString(undefined, { month: 'short' }); return <option key={label} value={m}>{label}</option>; })}
-          </select>
-          <select value={cursor.getFullYear()} onChange={e => setCursor(new Date(parseInt(e.target.value), cursor.getMonth(), 1))} className="glass-input glass-input--sm text-[11px]" aria-label={t('calendar.year')}>
-            {Array.from({ length: 5 }).map((_, i) => { const y = new Date().getFullYear() - 2 + i; return <option key={y} value={y}>{y}</option>; })}
-          </select>
+          <div className="flex items-center gap-1">
+            <button onClick={prev} className="glass-button glass-button--xs pressable w-8 justify-center" aria-label={t('calendar.prevMonth')}>←</button>
+            <button onClick={today} className="glass-button glass-button--xs pressable px-2 hidden sm:inline-flex" aria-label={t('calendar.today')}>{t('calendar.today')}</button>
+            <button onClick={next} className="glass-button glass-button--xs pressable w-8 justify-center" aria-label={t('calendar.nextMonth')}>→</button>
+          </div>
+          <div className="flex items-center gap-1">
+            <select value={cursor.getMonth()} onChange={e => setCursor(new Date(cursor.getFullYear(), parseInt(e.target.value), 1))} className="glass-input glass-input--sm text-[11px] w-[78px]" aria-label={t('calendar.month')}>
+              {Array.from({ length: 12 }).map((_, m) => { const label = new Date(2000, m, 1).toLocaleString(undefined, { month: 'short' }); return <option key={label} value={m}>{label}</option>; })}
+            </select>
+            <select value={cursor.getFullYear()} onChange={e => setCursor(new Date(parseInt(e.target.value), cursor.getMonth(), 1))} className="glass-input glass-input--sm text-[11px] w-[70px]" aria-label={t('calendar.year')}>
+              {Array.from({ length: 5 }).map((_, i) => { const y = new Date().getFullYear() - 2 + i; return <option key={y} value={y}>{y}</option>; })}
+            </select>
+          </div>
+          <h2 className="font-semibold text-base md:text-lg heading-gradient capitalize flex items-center gap-1 md:gap-2 ml-auto order-3 md:order-none">
+            <span className="hidden xs:inline">{monthLabel}</span>
+            <span className="text-[9px] md:text-[10px] px-1.5 md:px-2 py-0.5 rounded-full bg-indigo-500/30 dark:bg-indigo-500/25 border border-indigo-500/50 text-indigo-700 dark:text-indigo-200 shadow-sm">{t('nav.calendar')}</span>
+          </h2>
         </div>
-        <h2 className="font-semibold text-lg heading-gradient capitalize flex items-center gap-2">
-          {monthLabel}
-          <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/30 dark:bg-indigo-500/25 border border-indigo-500/50 text-indigo-700 dark:text-indigo-200 shadow-sm">{t('nav.calendar')}</span>
-        </h2>
-        <div className="text-xs text-muted flex gap-3 items-center">
-          <span>{t('calendar.incomeTotal')}: <span className="text-success">{format(Array.from(buckets.values()).reduce((s, b) => s + b.in, 0))}</span></span>
-          <span>{t('calendar.expenseTotal')}: <span className="text-danger">{format(-Array.from(buckets.values()).reduce((s, b) => s + b.out, 0)).replace('-', '')}</span></span>
+        <div className="flex items-center gap-3 flex-wrap text-[11px] md:text-xs">
+          <span className="flex items-center gap-0.5">{t('calendar.incomeTotal')}: <span className="text-success font-medium">{format(Array.from(buckets.values()).reduce((s, b) => s + b.in, 0))}</span></span>
+          <span className="flex items-center gap-0.5">{t('calendar.expenseTotal')}: <span className="text-danger font-medium">{format(-Array.from(buckets.values()).reduce((s, b) => s + b.out, 0)).replace('-', '')}</span></span>
           <CycleToggle
             value={density}
             onChange={v => setDensity(v as 'normal' | 'compact')}
@@ -195,7 +199,7 @@ export const CalendarView: React.FC = () => {
           <ToggleSwitch
             checked={heatmap}
             onChange={setHeatmap}
-            ariaLabel={heatmap ? t('calendar.heatmap.disable') : t('calendar.heatmap.enable')}
+            ariaLabel={t('calendar.heatmap')}
             label={<span className="flex items-center gap-1">{t('calendar.heatmap')} <span className="text-[10px] opacity-70">{heatmap ? t('generic.on') : t('generic.off')}</span></span>}
             size="sm"
           />

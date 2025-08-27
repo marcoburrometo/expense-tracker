@@ -68,8 +68,8 @@ export const ExpenseForm: React.FC = () => {
   const dateClass = fieldClass('date');
 
   return (
-    <GlassPanel as="form" onSubmit={onSubmit} variant="pure" className="space-y-3 p-5 max-w-md w-full">
-      <h2 className="font-semibold text-lg tracking-tight">{t('form.expense.new')}</h2>
+    <GlassPanel as="form" onSubmit={onSubmit} variant="pure" className="space-y-3 p-4 md:p-5 max-w-md w-full">
+      <h2 className="font-semibold text-base md:text-lg tracking-tight">{t('form.expense.new')}</h2>
       <RadioGroup
         name="expense-mode"
         value={mode}
@@ -81,7 +81,7 @@ export const ExpenseForm: React.FC = () => {
         ariaLabel={t('form.expense.new')}
         className="mt-1"
       />
-      <div className="grid grid-cols-2 gap-3 text-sm">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
         <div className="col-span-2">
           <input placeholder={t('form.description')} value={description} onChange={e => setDescription(e.target.value)} onBlur={() => markTouched('description')} className={descClass} aria-invalid={!!errors.description && touched.description} />
           {touched.description && errors.description && <p className="text-[10px] text-danger mt-0.5">{errors.description}</p>}

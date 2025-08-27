@@ -112,13 +112,13 @@ export default function Config() {
   // removed obsolete local toast effect
   return (
     <>
-      <main className="mx-auto max-w-7xl p-6 md:p-10 space-y-8">
+      <main className="mx-auto max-w-7xl p-4 md:p-10 space-y-8">
         <header className="space-y-2 fade-in">
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight heading-gradient">{t('page.config.title')}</h1>
           <p className="text-sm text-neutral-800 dark:text-neutral-400">{t('page.config.desc')}</p>
         </header>
         <section className="grid gap-6 md:gap-8 md:grid-cols-2 lg:grid-cols-3">
-          <div className="space-y-6 col-span-1">
+          <div className="space-y-6 col-span-1 max-w-[93vw]">
             {/* C: remove nested glass panel inside main form container for flatter hierarchy */}
             <div className="space-y-6 fade-in">
               <div className="glass-panel p-4 space-y-6">

@@ -6,7 +6,7 @@ import { useI18n } from '@/state/I18nContext';
 export default function MovimentiPage() {
   const { t } = useI18n();
   return (
-    <main className="mx-auto max-w-7xl p-6 md:p-10 space-y-8">
+    <main className="app-content-wrap py-6 md:py-10 space-y-8">
       <header className="space-y-2">
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{t('page.movimenti.title')}</h1>
         <p className="text-sm text-muted">{t('page.movimenti.desc')}</p>

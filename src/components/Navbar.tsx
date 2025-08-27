@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { GlassPanel } from './GlassPanel';
 import { useTheme } from '@/state/ThemeContext';
 import { useAuth } from '@/state/AuthContext';
@@ -23,7 +24,9 @@ export const Navbar: React.FC = () => {
   const { user, loading, signInWithGoogle, logout } = useAuth();
   const { workspaces, activeWorkspaceId, switchWorkspace, createNewWorkspace, cloudSyncEnabled, saving } = useWorkspace();
   const [open, setOpen] = useState(false);
+  const [leaving, setLeaving] = useState(false);
   const panelRef = useRef<HTMLDivElement | null>(null);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
   const { t, locale, setLocale } = useI18n();
   const links: NavItem[] = baseLinks.map(l => ({ href: l.href, label: t(l.key), match: l.match }));
   let syncLabel = t('sync.local');
@@ -32,8 +35,28 @@ export const Navbar: React.FC = () => {
     const name = prompt(t('workspace.newPrompt'));
     if (name) await createNewWorkspace(name);
   };
-  const close = useCallback(() => setOpen(false), []);
-  useEffect(() => { close(); }, [pathname, close]);
+  const close = useCallback(() => {
+    // animate out if panel open
+    if (open) {
+      setLeaving(true);
+      setTimeout(() => {
+        setOpen(false);
+        setLeaving(false);
+      }, 240); // match navSideOutRight
+    }
+  }, [open]);
+  // Close drawer only when navigating to a different pathname (not immediately after opening)
+  useEffect(() => {
+    if (!open) return; // only act if currently open
+    // trigger animated close when route changes
+    setLeaving(true);
+    const to = setTimeout(() => {
+      setOpen(false);
+      setLeaving(false);
+    }, 240);
+    return () => clearTimeout(to);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
   // Auto-close when viewport crosses to >= sm (Tailwind sm = 640px)
   useEffect(() => {
     function onResize() { if (window.innerWidth >= 640) close(); }
@@ -68,10 +91,13 @@ export const Navbar: React.FC = () => {
       const firstInteractive = panelRef.current?.querySelector<HTMLElement>('button, select, a');
       firstInteractive?.focus();
     }, 30);
+    const triggerEl = triggerRef.current;
     return () => {
       document.removeEventListener('keydown', onKey);
       document.removeEventListener('mousedown', onClickOutside);
       document.documentElement.style.overflow = prevOverflow;
+      // restore focus to trigger for accessibility
+      triggerEl?.focus();
     };
   }, [open, close]);
 
@@ -185,30 +211,51 @@ export const Navbar: React.FC = () => {
       </div>
       {/* Hamburger */}
       <button
+        ref={triggerRef}
         onClick={() => setOpen(o => !o)}
-        aria-label={t('nav.menu')}
+        aria-label={open ? t('nav.closeMenu') : t('nav.menu')}
         aria-expanded={open}
+        aria-haspopup="dialog"
         className="nav-hamburger sm:hidden ml-auto glass-button glass-button--sm px-3"
       >
         {open ? '✕' : '☰'}
       </button>
-      {/* Mobile panel */}
-      {open && (
-        <div
-          className="nav-mobile-panel absolute left-0 top-full w-full pt-2 z-30 sm:hidden"
-        >
+      {/* Mobile side drawer rendered via portal for highest stacking */}
+      {open && typeof document !== 'undefined' && createPortal(
+        <div className="fixed inset-0 z-[1000] sm:hidden flex">
+          <div
+            className={`absolute inset-0 bg-black/45 dark:bg-black/70 backdrop-blur-sm transition-opacity duration-200 ${leaving ? 'opacity-0' : 'opacity-100'}`}
+            aria-hidden="true"
+            onClick={close}
+          />
           <GlassPanel
             variant="subtle"
-            className="p-4 flex flex-col gap-4 nav-drawer-anim shadow-lg shadow-black/10 dark:shadow-black/40 sm:hidden backdrop-blur-xl"
+            className={`ml-auto nav-fullscreen nav-side-anim-right nav-side-panel-scroll p-6 pt-5 ${leaving ? '' : ''}`}
             ref={panelRef}
-            aria-label="Mobile navigation"
+            role="dialog"
+            aria-modal="true"
+            aria-label={t('nav.menu')}
+            data-leaving={leaving || undefined}
           >
-            {renderLinks(close)}
-            <div className="border-t border-white/10 pt-2" />
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2 font-semibold tracking-tight text-base">
+                <span className="text-accent text-[20px] leading-none">💰</span>
+                <span className="glass-text-brand text-[20px] leading-none">JANET</span>
+              </div>
+              <button onClick={close} className="glass-button glass-button--sm" aria-label={t('nav.closeMenu')}>✕</button>
+            </div>
+            <nav className="flex flex-col gap-6 text-[1.05rem] font-medium">
+              {renderLinks(close)}
+            </nav>
+            <div className="border-t border-white/10 dark:border-white/5 my-2" />
             {renderUserControls(close)}
-            <button onClick={close} className="glass-button glass-button--sm mt-2 self-end" aria-label={t('nav.closeMenu')}>{t('nav.closeMenu')}</button>
+            <div className="mt-auto pt-4 flex items-center justify-between gap-2 border-t border-white/10 dark:border-white/5 text-[11px] tracking-wide text-tertiary">
+              <span className="uppercase">{t('nav.menu')}</span>
+              <span>© {new Date().getFullYear()} JANET</span>
+            </div>
           </GlassPanel>
-        </div>
+        </div>,
+        document.body
       )}
     </GlassPanel>
   );

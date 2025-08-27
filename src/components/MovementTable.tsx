@@ -59,9 +59,23 @@ export const MovementTable: React.FC = () => {
     cancelEdit();
   }
 
-
   // Shared filters from context
   const { from, to, q, dir, category, sortDesc, update, includeProj } = useMovementFilters();
+
+  // Mobile filters collapse state
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const activeFilterCount = useMemo(() => {
+    let c = 0;
+    if (dir !== 'all') c++;
+    if (category) c++;
+    if (q.trim()) c++;
+    if (!includeProj) c++; // show when projections toggled off
+    return c;
+  }, [dir, category, q, includeProj]);
+
+
+
+  // (moved up)
 
   // Generate future projected recurring instances up to 'to' date if in future
   const projectFutureInstances = useCallback((templates: RecurringExpenseTemplate[], existing: (Exclude<AnyExpense, { type: 'recurring-template' }>)[], fromDate: Date, toDate: Date): GeneratedRecurringExpenseInstance[] => {
@@ -231,7 +245,18 @@ export const MovementTable: React.FC = () => {
 
   return (
     <div data-density={density} className={`flex flex-col h-full min-h-0 glass-panel glass-panel--pure p-2 md:p-3 gap-2 ${density === 'compact' ? 'density-compact' : ''}`}>
-      <div className="flex flex-wrap gap-3 items-end text-[11px] md:text-[13px]">
+      {/* Mobile top controls */}
+      <div className="sm:hidden flex items-center gap-2 text-[11px]">
+        <button
+          onClick={() => setFiltersOpen(o => !o)}
+          className="glass-button glass-button--xs"
+          aria-expanded={filtersOpen}
+          aria-controls="mov-filters"
+        >{filtersOpen ? '−' : '+'} {t('mov.search')}{activeFilterCount > 0 && <span className="ml-1 inline-block px-1 rounded bg-accent/80 text-[10px] text-white">{activeFilterCount}</span>}</button>
+        <button onClick={() => setDensity(d => d === 'normal' ? 'compact' : 'normal')} className="glass-button glass-button--xs" aria-label={t('mov.density')}>{density === 'normal' ? t('mov.density.compact') : t('mov.density.normal')}</button>
+        <button onClick={exportCSV} className="glass-button glass-button--primary glass-button--xs ml-auto" aria-label={t('mov.export')}>{t('mov.export')}</button>
+      </div>
+      <div id="mov-filters" className={`flex flex-wrap gap-3 items-end text-[11px] md:text-[13px] ${filtersOpen ? '' : 'hidden sm:flex'} sm:flex`}>
         <div className="flex flex-col">
           <label htmlFor="mov-from" className="uppercase tracking-wide text-[10px] font-semibold">{t('mov.from')}</label>
           <input id="mov-from" type="date" value={from} onChange={e => update({ from: e.target.value })} className="glass-input" />
@@ -271,7 +296,8 @@ export const MovementTable: React.FC = () => {
         {rows.length > 0 && <span className="text-secondary">{t('mov.finalBalance')}: {format(rows[rows.length - 1].balance)}</span>}
         <span className="ml-auto opacity-60 text-[10px]">{t('mov.sort')}: {sortField} {sortDesc ? '↓' : '↑'}</span>
       </div>
-      <div className={`overflow-auto flex-1 min-h-0 glass-scroll rounded-md border border-white/30 dark:border-white/5 ${density === 'compact' ? 'text-[11px]' : 'text-[12px]'}`}>
+      {/* Desktop / tablet table */}
+      <div className={`overflow-auto flex-1 min-h-0 glass-scroll rounded-md border border-white/30 dark:border-white/5 ${density === 'compact' ? 'text-[11px]' : 'text-[12px]'} hidden sm:block`}>
         <table className="glass-table w-full">
           <thead className="sticky top-0 z-10 bg-white/65 dark:bg-slate-900/55 backdrop-blur-xl shadow-sm">
             <tr className="[&_th]:font-semibold">
@@ -407,6 +433,65 @@ export const MovementTable: React.FC = () => {
             )}
           </tbody>
         </table>
+      </div>
+      {/* Mobile cards */}
+      <div className="sm:hidden flex-1 min-h-0 overflow-auto glass-scroll rounded-md border border-white/30 dark:border-white/5 p-1 flex flex-col gap-1 text-[12px]">
+        {rows.map(r => {
+          const amountSigned = r.direction === 'in' ? r.amount : -r.amount;
+          const isEditing = editingId === r.id && editValues;
+          if (isEditing) {
+            return (
+              <div key={r.id} className="p-2 rounded-md glass-panel glass-panel--subtle space-y-2 outline outline-[var(--accent)]">
+                <div className="flex gap-2">
+                  <input type="date" value={editValues!.date} onChange={e => setEditValues(v => v ? { ...v, date: e.target.value } : v)} className="glass-input glass-input--sm flex-1" />
+                  <select value={editValues!.direction} onChange={e => setEditValues(v => v ? { ...v, direction: e.target.value as 'in' | 'out' } : v)} className="glass-input glass-input--sm w-16">
+                    <option value="out">{t('form.direction.out')}</option>
+                    <option value="in">{t('form.direction.in')}</option>
+                  </select>
+                </div>
+                <input value={editValues!.description} onChange={e => setEditValues(v => v ? { ...v, description: e.target.value } : v)} className="glass-input glass-input--sm w-full" placeholder={t('mov.col.description')} />
+                <div className="flex gap-2">
+                  <input type="text" value={editValues!.category} onChange={e => setEditValues(v => v ? { ...v, category: e.target.value } : v)} className="glass-input glass-input--sm flex-1" placeholder={t('mov.col.category')} />
+                  <input type="number" step="0.01" value={editValues!.amount} onChange={e => setEditValues(v => v ? { ...v, amount: e.target.value } : v)} className="glass-input glass-input--sm w-28 text-right font-mono" />
+                </div>
+                <div className="flex justify-between items-center text-[11px] pt-1">
+                  <span className={`font-mono ${amountSigned >= 0 ? 'text-success' : 'text-danger'}`}>{format(amountSigned)}</span>
+                  <span className={`font-mono ${r.balance >= 0 ? 'text-success' : 'text-danger'}`}>{format(r.balance)}</span>
+                </div>
+                <div className="flex justify-end gap-2 pt-1">
+                  <button onClick={commitEdit} className="glass-button glass-button--sm glass-button--success" aria-label={t('mov.actions.save')}>✓</button>
+                  <button onClick={cancelEdit} className="glass-button glass-button--sm glass-button--neutral" aria-label={t('mov.actions.cancel')}>↺</button>
+                </div>
+              </div>
+            );
+          }
+          return (
+            <div key={r.id} className={`p-2 rounded-md glass-panel glass-panel--subtle space-y-1 ${r.projected ? 'opacity-80 italic' : ''}`}>              <div className="flex justify-between items-start gap-2">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-[10px] px-1 py-0.5 rounded bg-white/50 dark:bg-white/10 border border-white/30 dark:border-white/5">{r.date.slice(5)}</span>
+                  {r.projected && <span className="glass-badge badge-future text-[9px]">{t('mov.future')}</span>}
+                </div>
+                <div className="font-medium truncate mt-0.5">{r.description}</div>
+                <div className="text-[10px] opacity-60 truncate">{r.category}</div>
+              </div>
+              <div className="flex flex-col items-end gap-1 ml-2">
+                <span className={`font-mono ${amountSigned >= 0 ? 'text-success' : 'text-danger'}`}>{format(amountSigned)}</span>
+                <span className={`font-mono text-[10px] ${r.balance >= 0 ? 'text-success' : 'text-danger'}`}>{format(r.balance)}</span>
+                <div className="flex gap-1">
+                  {!r.projected && <button onClick={() => startEdit(r.id)} className="glass-button glass-button--xs" aria-label={t('mov.actions.edit')}>✎</button>}
+                  {!r.projected ? (
+                    <button onClick={() => { setDeleteId(r.id); setModalOpen(true); }} className="glass-button glass-button--danger glass-button--xs" aria-label={t('mov.actions.delete')}>✕</button>
+                  ) : <span className="text-[9px] opacity-40">—</span>}
+                </div>
+              </div>
+            </div>
+            </div>
+          );
+        })}
+        {!rows.length && (
+          <div className="p-6 text-center text-neutral-500 text-[12px]">{t('mov.none')}</div>
+        )}
       </div>
       <Confirm
         open={modalOpen && !!deleteTarget}

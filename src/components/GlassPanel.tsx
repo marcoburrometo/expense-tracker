@@ -34,7 +34,17 @@ export const GlassPanel = React.forwardRef<HTMLElement, GlassPanelProps>(functio
   ...rest
 }, ref) {
   // We cannot know precise intrinsic element type; rely on HTMLElement base.
-  return <Tag ref={ref as React.Ref<HTMLElement>} className={clsx(variantClass[variant], !noPadding && 'p-4', className)} {...rest}>{children}</Tag>;
+  return <Tag
+    ref={ref as React.Ref<HTMLElement>}
+    className={clsx(
+      variantClass[variant],
+      // width constrained by parent; global CSS sets max-width:100%
+      'w-full',     // let panel expand to container width (container manages horizontal padding)
+      !noPadding && 'p-4',
+      className
+    )}
+    {...rest}
+  >{children}</Tag>;
 });
 
 export default GlassPanel;

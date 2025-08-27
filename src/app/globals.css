@@ -2,6 +2,8 @@
 @import "tailwindcss";
 
 /* Dark mode handled via html.dark class (tailwind.config.js) and [data-theme] attributes (DO NOT TOUCH!) */
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+/* Dark mode handled via html.dark class (tailwind.config.js) and [data-theme] attributes (DO NOT TOUCH!) */
 
 html,
 body {
@@ -11,6 +13,51 @@ body {
 body {
   min-height: 100vh;
   overflow-x: hidden;
+}
+
+/* Constrain interior content to avoid horizontal bleed on very small screens */
+.app-content-wrap {
+  width: 100%;
+  margin-inline: auto;
+  padding-inline: var(--space-3);
+  max-width: 1320px;
+  /* wide desktop cap */
+  box-sizing: border-box;
+}
+
+@media (min-width: 640px) {
+  .app-content-wrap {
+    padding-inline: var(--space-4);
+  }
+}
+
+@media (min-width: 1024px) {
+  .app-content-wrap {
+    padding-inline: var(--space-5);
+  }
+}
+
+/* Utility to allow a panel to stretch edge-to-edge inside constrained wrapper when desired */
+.edge-bleed {
+  margin-inline: calc(var(--space-3) * -1);
+}
+
+@media (min-width: 640px) {
+  .edge-bleed {
+    margin-inline: calc(var(--space-4) * -1);
+  }
+}
+
+@media (min-width: 1024px) {
+  .edge-bleed {
+    margin-inline: calc(var(--space-5) * -1);
+  }
+}
+
+/* Prevent glass panels with internal scroll (tables, charts) from overflowing rounding/padding box */
+.glass-panel>.overflow-clip,
+.overflow-clip {
+  overflow: clip;
 }
 
 /* Ensure root layout can stretch edge-to-edge */
@@ -71,7 +118,48 @@ html.dark .app-shell::before {
   }
 }
 
-/* Mobile nav drawer animation */
+/* Mobile utility helpers */
+.hide-mobile {
+  display: none !important;
+}
+
+@media (min-width: 640px) {
+  .hide-mobile {
+    display: initial !important;
+  }
+}
+
+@media (max-width: 639.5px) {
+  .show-mobile-flex {
+    display: flex !important;
+  }
+
+  .show-mobile-block {
+    display: block !important;
+  }
+}
+
+@media (min-width: 640px) {
+
+  .show-mobile-flex,
+  .show-mobile-block {
+    display: none !important;
+  }
+}
+
+.stack-on-mobile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+@media (min-width: 640px) {
+  .stack-on-mobile {
+    flex-direction: row;
+  }
+}
+
+/* Mobile nav drawer animations */
 @keyframes navSlideFade {
   from {
     opacity: 0;
@@ -82,6 +170,95 @@ html.dark .app-shell::before {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
+}
+
+@keyframes navSideIn {
+  0% {
+    opacity: 0;
+    transform: translateX(-24px) scale(.96);
+  }
+
+  70% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes navSideInRight {
+  0% {
+    opacity: 0;
+    transform: translateX(6%) scale(.985);
+  }
+
+  55% {
+    opacity: 1;
+  }
+
+  72% {
+    transform: translateX(-1.25%) scale(1.002);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes navSideOutRight {
+  0% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+
+  30% {
+    opacity: .9;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(4%) scale(.985);
+  }
+}
+
+.nav-side-anim-right {
+  animation: navSideInRight .42s cubic-bezier(.16, .8, .24, 1.02) both;
+}
+
+.nav-side-anim-right[data-leaving='true'] {
+  animation: navSideOutRight .26s cubic-bezier(.55, .06, .68, .19) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .nav-side-anim-right,
+  .nav-side-anim-right[data-leaving='true'] {
+    animation: none !important;
+  }
+}
+
+.nav-fullscreen {
+  border-radius: 0 !important;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.nav-side-anim {
+  animation: navSideIn .32s cubic-bezier(.16, .8, .3, 1) both;
+}
+
+/* Ensure side drawer panel allows its own scrolling without body scroll */
+.nav-side-panel-scroll {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
 }
 
 /* Theme/Icon micro animation */
@@ -352,6 +529,9 @@ html.dark .app-main {
   overflow: hidden;
   isolation: isolate;
   /* create stacking context so z-index inside is predictable */
+  /* Use container width constraints only (was 100vw) */
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 /* Allow selective overflow visibility (e.g. nav tooltip) */
