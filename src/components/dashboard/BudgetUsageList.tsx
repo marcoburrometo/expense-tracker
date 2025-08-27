@@ -3,6 +3,7 @@ import React from 'react';
 import { useDashboardMetrics } from '@/state/useDashboardMetrics';
 import { useCurrencyFormatter } from '@/lib/format';
 import { useI18n } from '@/state/I18nContext';
+import { formatCategory } from '@/lib/formatCategory';
 import InfoHint from '@/components/InfoHint';
 
 export const BudgetUsageList: React.FC = () => {
@@ -23,7 +24,7 @@ export const BudgetUsageList: React.FC = () => {
                     const barColor = pct >= 1 ? 'bg-danger' : pct >= .9 ? 'bg-warning' : b.pace === 'fast' ? 'bg-accent' : 'bg-success';
                     return (
                         <li key={b.budgetId} className="flex flex-col gap-1 p-2 rounded-md bg-white/40 dark:bg-white/10 border border-white/40 dark:border-white/10 backdrop-blur-sm">
-                            <div className="flex items-center justify-between gap-2 text-[11px] font-medium"><span className="truncate">{b.category || t('dashboard.category.uncategorized')}</span><span className="tabular-nums text-secondary">{pctLabel}</span></div>
+                            <div className="flex items-center justify-between gap-2 text-[11px] font-medium"><span className="truncate">{b.category ? formatCategory(b.category, t) : t('dashboard.category.uncategorized')}</span><span className="tabular-nums text-secondary">{pctLabel}</span></div>
                             <div className="h-2 w-full rounded bg-black/5 dark:bg-white/10 overflow-hidden relative">
                                 <div className={`h-full ${barColor} transition-all duration-500`} style={{ width: pct * 100 + '%' }} />
                             </div>

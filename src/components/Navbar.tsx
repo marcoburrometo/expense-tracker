@@ -175,7 +175,7 @@ export const Navbar: React.FC = () => {
             </select>
           )}
           <div className="flex items-center gap-2">
-            <button onClick={async () => { await onCreateWorkspace(); onClick?.(); }} className="glass-button glass-button--sm" aria-label={t('nav.newWorkspace')}>＋WS</button>
+            <button onClick={async () => { await onCreateWorkspace(); onClick?.(); }} className="glass-button glass-button--sm" aria-label={t('nav.newWorkspace')}>＋{t('nav.newWorkspace')}</button>
             <span className={`glass-badge text-[9px] tracking-wide flex items-center gap-1 ${cloudSyncEnabled ? 'text-success' : 'text-tertiary'}`}>{syncLabel}
               <InfoHint
                 tKey={cloudSyncEnabled ? (saving ? 'sync.hint.saving' : 'sync.hint.synced') : 'sync.hint.local'}

@@ -13,6 +13,7 @@ import React from 'react';
 import { GlassPanel } from '@/components/GlassPanel';
 import { useI18n } from '@/state/I18nContext';
 import { useToast } from '@/state/ToastContext';
+import { ToggleSwitch } from '@/components/forms/ToggleSwitch';
 
 export default function Config() {
   const { t } = useI18n();
@@ -243,6 +244,9 @@ export default function Config() {
                 ))}
                 {!audit.length && <li className="opacity-60">{t('config.audit.none')}</li>}
               </ul>
+              <div className="glass-divider" />
+              <h3 className="font-semibold mb-2 text-sm">{t('analytics.section.title')}</h3>
+              <AnalyticsSettings t={t} />
             </GlassPanel>
           </div>
         </section>
@@ -274,3 +278,28 @@ export default function Config() {
     </>
   );
 }
+
+// Local component for analytics opt in/out
+const AnalyticsSettings: React.FC<{ t: (k: string) => string }> = ({ t }) => {
+  const [enabled, setEnabled] = React.useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem('janet.analytics.disabled') !== '1';
+  });
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (enabled) {
+      localStorage.removeItem('janet.analytics.disabled');
+    } else {
+      localStorage.setItem('janet.analytics.disabled', '1');
+    }
+  }, [enabled]);
+  return (
+    <div className="space-y-3 text-[12px]">
+      <p className="leading-snug opacity-80">{t('analytics.description')}</p>
+      <div className="flex items-center gap-3">
+        <ToggleSwitch checked={enabled} onChange={(v: boolean) => setEnabled(v)} size="sm" ariaLabel={enabled ? t('analytics.optOutLabel') : t('analytics.optInLabel')} />
+        <span className="text-[11px] tracking-wide uppercase font-medium">{enabled ? t('analytics.enabled.notice') : t('analytics.disabled.notice')}</span>
+      </div>
+    </div>
+  );
+};

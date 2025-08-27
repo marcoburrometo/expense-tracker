@@ -10,6 +10,7 @@ import { QuickAdd } from '@/components/QuickAdd';
 import { ThemeProvider } from '@/state/ThemeContext';
 import { I18nProvider } from '@/state/I18nContext';
 import { ToastProvider } from '@/state/ToastContext';
+import AnalyticsTracker from '@/components/AnalyticsTracker';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -42,6 +43,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const gaId = process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen text-neutral-900 dark:text-neutral-50`}>
@@ -59,6 +61,7 @@ export default function RootLayout({
                         <div className="app-main">
                           {children}
                         </div>
+                        <AnalyticsTracker measurementId={gaId} />
                         <QuickAdd />
                       </MovementFiltersProvider>
                     </WorkspaceProvider>

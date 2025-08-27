@@ -3,6 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { GlassPanel } from './GlassPanel';
 import { useTracker } from '@/state/TrackerContext';
 import { mergeCategories } from '@/domain/categories';
+import { formatCategory } from '@/lib/formatCategory';
 import { useI18n } from '@/state/I18nContext';
 import { RadioGroup } from './forms/RadioGroup';
 
@@ -98,7 +99,7 @@ export const ExpenseForm: React.FC = () => {
           <select value={category} onChange={e => setCategory(e.target.value)} className="w-full glass-input">
             {!categories.includes(category) && <option value={category}>{category}</option>}
             {categories.map(c => (
-              <option key={c} value={c}>{c}</option>
+              <option key={c} value={c}>{formatCategory(c, t)}</option>
             ))}
           </select>
         </div>
