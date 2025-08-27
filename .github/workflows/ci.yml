@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+# Avoid parallel stale runs on same ref
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-lint:
+    name: Build & Lint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install deps (clean)
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        env:
+          # Ensure Next.js treats this as CI
+          CI: true
+        run: npm run build
+
+      # (Optional) Add typecheck step later when script exists in package.json
+      # - name: Type Check
+      #   run: npm run typecheck
+
+      # (Optional) Cache build artifacts or upload
+      # - uses: actions/upload-artifact@v4
+      #   with:
+      #     name: next-build
+      #     path: .next
+
+# Notes:
+# - After this workflow runs once, mark "CI / Build & Lint" (or the actual check name) as a required status check in Branch Protection.
+# - Add extra jobs (tests, typecheck) incrementally to keep pipeline fast.
