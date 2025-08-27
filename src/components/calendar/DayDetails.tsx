@@ -37,7 +37,7 @@ export const DayDetails: React.FC<DayDetailsProps> = ({ activeDay, buckets, sort
         <span>{t('stats.balance')} <strong className={net >= 0 ? 'text-success' : 'text-danger'}>{net >= 0 ? '+' : '-'}€ {Math.abs(net).toFixed(2)}</strong></span>
         <div className="ml-auto flex gap-1">
           <button type="button" onClick={() => setSortBy(s => s === 'date' ? 'amount' : 'date')} className="glass-button glass-button--xs" aria-label="Toggle sort">{t('mov.sort')}: {sortBy === 'date' ? t('mov.col.date') : t('mov.col.amount')}</button>
-          <button type="button" onClick={() => setViewMode(v => v === 'list' ? 'category' : 'list')} className="glass-button glass-button--xs" aria-label="Toggle view">{t('calendar.viewMode') || 'View'}: {viewMode === 'list' ? (t('calendar.view.list') || 'List') : (t('calendar.view.category') || 'Categories')}</button>
+          <button type="button" onClick={() => setViewMode(v => v === 'list' ? 'category' : 'list')} className="glass-button glass-button--xs" aria-label={t('calendar.viewMode')}>{t('calendar.viewMode')}: {viewMode === 'list' ? t('calendar.view.list') : t('calendar.view.category')}</button>
         </div>
       </div>
       {viewMode === 'list' ? (
@@ -48,7 +48,7 @@ export const DayDetails: React.FC<DayDetailsProps> = ({ activeDay, buckets, sort
               <div key={e.id} className="flex justify-between gap-2 text-[11px] py-0.5 border-b last:border-none border-white/30 dark:border-white/10">
                 <span className="flex-1 truncate">
                   {e.description} <span className="opacity-50">[{e.category}]</span>
-                  {synthetic && <span className="ml-1 inline-block px-1 rounded bg-indigo-500/70 text-[9px] text-white align-middle" title="synthetic recurrence">S</span>}
+                  {synthetic && <span className="ml-1 inline-block px-1 rounded bg-indigo-500/70 text-[9px] text-white align-middle" title={t('calendar.synthetic')}>S</span>}
                 </span>
                 <span className={`font-mono ${e.direction === 'in' ? 'text-success' : 'text-danger'}`}>{e.direction === 'in' ? '+' : '-'}€ {e.amount.toFixed(2)}</span>
               </div>
