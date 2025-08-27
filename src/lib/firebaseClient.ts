@@ -4,6 +4,8 @@
 
 import { initializeApp, getApps, type FirebaseApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
+// Analytics is optional; import types lazily to avoid bundle overhead if unused
+import { getAnalytics, isSupported, type Analytics } from 'firebase/analytics';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -27,5 +29,24 @@ export function getFirebaseApp() {
 }
 
 export const auth = () => getAuth(getFirebaseApp());
+
+let _analytics: Analytics | null | undefined;
+
+export async function getFirebaseAnalytics(): Promise<Analytics | null> {
+  if (typeof window === 'undefined') return null; // SSR guard
+  if (_analytics !== undefined) return _analytics; // may be null if unsupported
+  try {
+    const supported = await isSupported();
+    if (!supported) {
+      _analytics = null;
+    } else {
+      _analytics = getAnalytics(getFirebaseApp());
+    }
+  } catch (err) {
+    console.warn('Analytics init failed', err);
+    _analytics = null;
+  }
+  return _analytics;
+}
 
 

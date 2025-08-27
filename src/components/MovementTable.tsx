@@ -6,6 +6,7 @@ import { AnyExpense, RecurringExpenseTemplate, GeneratedRecurringExpenseInstance
 import { useMovementFilters } from '@/state/MovementFiltersContext';
 import { useI18n } from '@/state/I18nContext';
 import { useCurrencyFormatter } from '@/lib/format';
+import { formatCategory } from '@/lib/formatCategory';
 
 interface Row { id: string; date: string; description: string; category: string; direction: 'in' | 'out'; amount: number; balance: number; projected?: boolean; }
 
@@ -237,7 +238,7 @@ export const MovementTable: React.FC = () => {
   const confirmDetails = deleteTarget ? (
     <>
       <div><span className="opacity-70">{t('mov.field.date')}:</span> {deleteTarget.date}</div>
-      <div><span className="opacity-70">{t('mov.field.category')}:</span> {deleteTarget.category}</div>
+      <div><span className="opacity-70">{t('mov.field.category')}:</span> {formatCategory(deleteTarget.category, t)}</div>
       <div><span className="opacity-70">{t('mov.field.amount')}:</span> {deleteTarget.direction === 'in' ? '+' : '-'}€ {deleteTarget.amount?.toFixed(2)}</div>
       <div><span className="opacity-70">{t('mov.field.balanceAfter')}:</span> € {deleteTarget.balance.toFixed(2)}</div>
     </>
@@ -277,7 +278,7 @@ export const MovementTable: React.FC = () => {
           <label htmlFor="mov-cat" className="uppercase tracking-wide text-[10px] font-semibold">{t('mov.category')}</label>
           <select id="mov-cat" value={category} onChange={e => update({ category: e.target.value })} className="glass-input">
             <option value="">{t('mov.category.all')}</option>
-            {categories.map(c => <option key={c} value={c}>{c}</option>)}
+            {categories.map(c => <option key={c} value={c}>{formatCategory(c, t)}</option>)}
           </select>
         </div>
         <div className="flex flex-col flex-1 min-w-[160px]">
@@ -399,10 +400,10 @@ export const MovementTable: React.FC = () => {
                       <td className="px-2 py-1 font-mono tabular-nums whitespace-nowrap">{r.date}</td>
                       <td className="px-2 py-1 max-w-[260px] md:max-w-[320px]">
                         <span className="block truncate font-medium">{r.description}</span>
-                        <span className="md:hidden block text-[10px] opacity-60 mt-0.5">{r.category}</span>
+                        <span className="md:hidden block text-[10px] opacity-60 mt-0.5">{formatCategory(r.category, t)}</span>
                         {r.projected && <span className="ml-1 glass-badge badge-future">{t('mov.future')}</span>}
                       </td>
-                      <td className="px-2 py-1 hidden md:table-cell">{r.category}</td>
+                      <td className="px-2 py-1 hidden md:table-cell">{formatCategory(r.category, t)}</td>
                       <td className={`px-2 py-1 text-right font-mono tabular-nums ${amountSigned >= 0 ? 'text-success' : 'text-danger'}`}>{format(amountSigned)}</td>
                       <td className={`px-2 py-1 text-right font-mono tabular-nums hidden sm:table-cell ${r.balance >= 0 ? 'text-success' : 'text-danger'}`}>{format(r.balance)}</td>
                       <td className="px-2 py-1 text-right whitespace-nowrap flex gap-1 justify-end">
@@ -473,7 +474,7 @@ export const MovementTable: React.FC = () => {
                   {r.projected && <span className="glass-badge badge-future text-[9px]">{t('mov.future')}</span>}
                 </div>
                 <div className="font-medium truncate mt-0.5">{r.description}</div>
-                <div className="text-[10px] opacity-60 truncate">{r.category}</div>
+                <div className="text-[10px] opacity-60 truncate">{formatCategory(r.category, t)}</div>
               </div>
               <div className="flex flex-col items-end gap-1 ml-2">
                 <span className={`font-mono ${amountSigned >= 0 ? 'text-success' : 'text-danger'}`}>{format(amountSigned)}</span>
