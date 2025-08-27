@@ -16,6 +16,7 @@ const baseLinks: BaseLink[] = [
   { href: '/', key: 'nav.movements', match: (p: string) => p === '/' },
   { href: '/config', key: 'nav.config', match: (p: string) => p.startsWith('/config') },
   { href: '/calendar', key: 'nav.calendar', match: (p: string) => p.startsWith('/calendar') },
+  { href: '/about', key: 'about.title', match: (p: string) => p.startsWith('/about') },
 ];
 
 export const Navbar: React.FC = () => {
