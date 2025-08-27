@@ -39,9 +39,9 @@ export const BudgetSummary: React.FC = () => {
   const deleteTarget = confirmDeleteId ? budgets.find(b => b.id === confirmDeleteId) : null;
   const confirmDetails = deleteTarget ? (
     <>
-  <div><span className="opacity-70">Categoria:</span> {formatCategory(deleteTarget.category, t)}</div>
-      <div><span className="opacity-70">Limite:</span> {format(deleteTarget.limit)}</div>
-      <div><span className="opacity-70">Speso mese:</span> {format(totals[deleteTarget.category] || 0)}</div>
+      <div><span className="opacity-70">{t('budget.field.category')}:</span> {formatCategory(deleteTarget.category, t)}</div>
+      <div><span className="opacity-70">{t('budget.field.limit')}:</span> {format(deleteTarget.limit)}</div>
+      <div><span className="opacity-70">{t('budget.field.spentMonth')}:</span> {format(totals[deleteTarget.category] || 0)}</div>
     </>
   ) : null;
   return (

@@ -238,7 +238,7 @@ export const MovementTable: React.FC = () => {
   const confirmDetails = deleteTarget ? (
     <>
       <div><span className="opacity-70">{t('mov.field.date')}:</span> {deleteTarget.date}</div>
-  <div><span className="opacity-70">{t('mov.field.category')}:</span> {formatCategory(deleteTarget.category, t)}</div>
+      <div><span className="opacity-70">{t('mov.field.category')}:</span> {formatCategory(deleteTarget.category, t)}</div>
       <div><span className="opacity-70">{t('mov.field.amount')}:</span> {deleteTarget.direction === 'in' ? '+' : '-'}€ {deleteTarget.amount?.toFixed(2)}</div>
       <div><span className="opacity-70">{t('mov.field.balanceAfter')}:</span> € {deleteTarget.balance.toFixed(2)}</div>
     </>
