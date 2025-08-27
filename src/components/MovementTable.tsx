@@ -466,27 +466,29 @@ export const MovementTable: React.FC = () => {
             );
           }
           return (
-            <div key={r.id} className={`p-2 rounded-md glass-panel glass-panel--subtle space-y-1 ${r.projected ? 'opacity-80 italic' : ''}`}>              <div className="flex justify-between items-start gap-2">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-[10px] px-1 py-0.5 rounded bg-white/50 dark:bg-white/10 border border-white/30 dark:border-white/5">{r.date.slice(5)}</span>
-                  {r.projected && <span className="glass-badge badge-future text-[9px]">{t('mov.future')}</span>}
+            <div key={r.id} className={`p-2 rounded-md glass-panel glass-panel--subtle space-y-1 ${r.projected ? 'opacity-80 italic' : ''}`}>
+              <div className="flex justify-between items-start gap-2">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-[10px] px-1 py-0.5 rounded bg-white/50 dark:bg-white/10 border border-white/30 dark:border-white/5">{r.date.slice(5)}</span>
+                    {r.projected && <span className="glass-badge badge-future text-[9px]">{t('mov.future')}</span>}
+                  </div>
+                  <div className="font-medium truncate mt-0.5">{r.description}</div>
+                  <div className="text-[10px] opacity-60 truncate">{r.category}</div>
                 </div>
-                <div className="font-medium truncate mt-0.5">{r.description}</div>
-                <div className="text-[10px] opacity-60 truncate">{r.category}</div>
-              </div>
-              <div className="flex flex-col items-end gap-1 ml-2">
-                <span className={`font-mono ${amountSigned >= 0 ? 'text-success' : 'text-danger'}`}>{format(amountSigned)}</span>
-                <span className={`font-mono text-[10px] ${r.balance >= 0 ? 'text-success' : 'text-danger'}`}>{format(r.balance)}</span>
-                <div className="flex gap-1">
-                  {!r.projected && <button onClick={() => startEdit(r.id)} className="glass-button glass-button--xs" aria-label={t('mov.actions.edit')}>✎</button>}
-                  {!r.projected ? (
-                    <button onClick={() => { setDeleteId(r.id); setModalOpen(true); }} className="glass-button glass-button--danger glass-button--xs" aria-label={t('mov.actions.delete')}>✕</button>
-                  ) : <span className="text-[9px] opacity-40">—</span>}
+                <div className="flex flex-col items-end gap-1 ml-2">
+                  <span className={`font-mono ${amountSigned >= 0 ? 'text-success' : 'text-danger'}`}>{format(amountSigned)}</span>
+                  <span className={`font-mono text-[10px] ${r.balance >= 0 ? 'text-success' : 'text-danger'}`}>{format(r.balance)}</span>
+                  <div className="flex gap-1">
+                    {!r.projected && <button onClick={() => startEdit(r.id)} className="glass-button glass-button--xs" aria-label={t('mov.actions.edit')}>✎</button>}
+                    {!r.projected ? (
+                      <button onClick={() => { setDeleteId(r.id); setModalOpen(true); }} className="glass-button glass-button--danger glass-button--xs" aria-label={t('mov.actions.delete')}>✕</button>
+                    ) : <span className="text-[9px] opacity-40">—</span>}
+                  </div>
                 </div>
               </div>
             </div>
-            </div>
+          );
           );
         })}
         {!rows.length && (
