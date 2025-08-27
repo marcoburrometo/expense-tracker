@@ -14,32 +14,35 @@ interface ToggleSwitchProps {
 }
 
 export const ToggleSwitch: React.FC<ToggleSwitchProps> = ({ checked, onChange, label, ariaLabel, disabled, size = 'md', id, onIcon, offIcon }) => {
-    const knobSize = size === 'sm' ? 'h-3.5 w-3.5' : 'h-4 w-4';
-    const trackSize = size === 'sm' ? 'h-5 w-9' : 'h-6 w-11';
-    const pad = 'p-0.5';
     const reactId = React.useId();
     const _id = id ?? reactId;
+    const isSm = size === 'sm';
+    const trackClasses = isSm ? 'h-5 w-9' : 'h-6 w-11';
+    const knobClasses = isSm ? 'h-3.5 w-3.5' : 'h-4 w-4';
+    // Pixel translate (instead of translate-x-full) to avoid overflow glitch & ensure precise centering
+    const translate = isSm ? (checked ? 'translate-x-4' : 'translate-x-0') : (checked ? 'translate-x-5' : 'translate-x-0');
+    const hasVisibleLabel = !!label;
     return (
         <label htmlFor={_id} className={`inline-flex items-center gap-2 cursor-pointer select-none ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
-            <span className={`relative inline-flex ${trackSize} ${pad} rounded-full transition-colors duration-300 border ${checked ? 'bg-[var(--accent)] border-[var(--accent)]' : 'bg-white/40 dark:bg-neutral-700/40 border-neutral-400/50 dark:border-neutral-600/50'} shadow-sm`}
+            <span
+                className={`relative inline-flex ${trackClasses} p-0.5 rounded-full transition-colors duration-300 border focus-within:ring-2 focus-within:ring-[var(--accent)] focus-within:ring-offset-2 focus-within:ring-offset-transparent outline-none ${checked ? 'bg-[var(--accent)] border-[var(--accent)]' : 'bg-white/40 dark:bg-neutral-700/40 border-neutral-400/50 dark:border-neutral-600/50'} shadow-sm`}
                 role="switch"
                 aria-checked={checked}
-                aria-label={ariaLabel}
+                aria-label={!hasVisibleLabel ? ariaLabel : undefined}
             >
                 <input
                     id={_id}
                     type="checkbox"
-                    className="sr-only"
+                    className="sr-only peer"
                     checked={checked}
                     disabled={disabled}
                     onChange={e => onChange(e.target.checked)}
                 />
-                <span className={`absolute top-1/2 -translate-y-1/2 ${knobSize} rounded-full bg-white dark:bg-neutral-200 shadow transition-transform duration-300 ease-out flex items-center justify-center text-[10px]
-          ${checked ? 'translate-x-full left-0 right-0 ml-auto' : 'left-0'}
-        `}
+                <span
+                    className={`absolute top-1/2 -translate-y-1/2 ${knobClasses} rounded-full bg-white dark:bg-neutral-200 shadow transition-transform duration-300 ease-out flex items-center justify-center text-[10px] ${translate}`}
                 >{checked ? onIcon : offIcon}</span>
             </span>
-            {label && <span className="text-[11px] md:text-[12px] font-medium leading-none">{label}</span>}
+            {label && <span className="text-[11px] md:text-[12px] font-medium leading-none" id={`${_id}-label`}>{label}</span>}
         </label>
     );
 };

@@ -10,6 +10,7 @@ import { useAuth } from '@/state/AuthContext';
 import { createWorkspaceInviteWithInfo, listWorkspaceInvites, listAuditEntries, acceptInvite, declineInvite, listUserIncomingInvites, getWorkspace, deleteWorkspaceInvite, removeAcceptedInvite } from '@/lib/workspaceAdapter';
 import Confirm from '@/components/Confirm';
 import React from 'react';
+import { GlassPanel } from '@/components/GlassPanel';
 import { useI18n } from '@/state/I18nContext';
 import { useToast } from '@/state/ToastContext';
 
@@ -121,21 +122,15 @@ export default function Config() {
           <div className="space-y-6 col-span-1 max-w-[93vw]">
             {/* C: remove nested glass panel inside main form container for flatter hierarchy */}
             <div className="space-y-6 fade-in">
-              <div className="glass-panel p-4 space-y-6">
-                <ExpenseForm />
-                <div className="glass-divider" />
-                <BudgetForm />
-              </div>
+              <ExpenseForm />
+              <div className="glass-divider" />
+              <BudgetForm />
             </div>
-            <div className="glass-panel p-4 fade-in" style={{ animationDelay: '.05s' }}>
-              <BudgetSummary />
-            </div>
+            <BudgetSummary />
           </div>
           <div className="col-span-1 md:col-span-1 lg:col-span-2">
-            <div className="glass-panel p-4 fade-in" style={{ animationDelay: '.1s' }}>
-              <ExpenseList />
-            </div>
-            <div className="glass-panel p-4 mt-6 fade-in" style={{ animationDelay: '.15s' }}>
+            <ExpenseList />
+            <GlassPanel variant="pure" className="mt-6 fade-in" style={{ animationDelay: '.15s' }}>
               <h2 className="font-semibold mb-2 text-sm">{t('config.section.workspace')}</h2>
               <div className="text-[12px] mb-4 space-y-1">
                 <div><strong>{t('config.workspace.label')}:</strong> {activeWorkspace?.name || '—'} {cloudSyncEnabled ? t('config.workspace.cloudOn') : t('config.workspace.cloudOff')}</div>
@@ -248,7 +243,7 @@ export default function Config() {
                 ))}
                 {!audit.length && <li className="opacity-60">{t('config.audit.none')}</li>}
               </ul>
-            </div>
+            </GlassPanel>
           </div>
         </section>
       </main>

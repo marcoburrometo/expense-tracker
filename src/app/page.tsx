@@ -24,7 +24,7 @@ export default function HomeMovements() {
       <div className="grid gap-6 lg:grid-cols-5 flex-1 min-h-0">
         <div className="lg:col-span-2 space-y-6  max-w-[95vw] fade-in" style={{ animationDelay: '.2s' }}>
           <LedgerChart />
-          <GlassPanel className="p-3 flex flex-col gap-5 glass-panel--overflow-visible">
+          <GlassPanel variant='pure' className="p-3 flex flex-col gap-5 glass-panel--overflow-visible">
             <NetForecastCard />
             <NextUpcomingCards />
             <ExtremesCards />
