@@ -183,8 +183,19 @@ export const MovementTable: React.FC = () => {
   }, [baseItems, from, to, q, dir, category, sortDesc, sortField]);
 
   const rows = useMemo<Row[]>(() => {
-    let balance = 0;
-    // For chronological balance calculation we need ascending order
+    // Compute initial running balance BEFORE current filter window start (to preserve cumulative correctness)
+    // We intentionally exclude projected future instances from baseline to avoid skewing historical balance.
+    const filterStart = from ? new Date(from + 'T00:00:00') : null;
+    let initialBalance = 0;
+    if (filterStart) {
+      for (const e of baseItems) {
+        if (e.id.startsWith('proj-')) continue;
+        const d = new Date(e.date);
+        if (d < filterStart) initialBalance += e.direction === 'in' ? e.amount : -e.amount;
+      }
+    }
+    let balance = initialBalance;
+    // For chronological calculation we sort ascending by date
     const chronological = [...filteredSorted].sort((a, b) => a.date.localeCompare(b.date));
     const computed: Row[] = chronological.map(e => {
       balance += e.direction === 'in' ? e.amount : -e.amount;
@@ -201,7 +212,7 @@ export const MovementTable: React.FC = () => {
       presented = [...computed].sort((a, b) => sortDesc ? b.balance - a.balance : a.balance - b.balance);
     }
     return presented;
-  }, [filteredSorted, sortDesc, sortField]);
+  }, [filteredSorted, sortDesc, sortField, baseItems, from]);
 
   const totals = useMemo(() => {
     let inc = 0, out = 0;

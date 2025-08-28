@@ -62,12 +62,19 @@ export const LedgerChart: React.FC = () => {
   }, [baseItems, projectedInstances, from, to, dir, category, q]);
 
   const points: Point[] = useMemo(() => {
-    let balance = 0;
+    // Preserve cumulative balance by adding baseline prior to filter 'from'
+    const fromDate = new Date(from + 'T00:00:00');
+    let baseline = 0;
+    for (const e of baseItems) { // only real movements (baseItems excludes templates already)
+      const d = new Date(e.date);
+      if (d < fromDate) baseline += e.direction === 'in' ? e.amount : -e.amount;
+    }
+    let balance = baseline;
     return allChrono.map(e => {
       balance += e.direction === 'in' ? e.amount : -e.amount;
       return { date: e.date.slice(0, 10), balance, projected: e.id.startsWith('proj-') };
     });
-  }, [allChrono]);
+  }, [allChrono, baseItems, from]);
 
   const smoothed = useMemo(() => {
     if (!smooth || points.length < 3) return points;
