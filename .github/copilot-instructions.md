@@ -49,6 +49,8 @@ Agents adding new global state should mirror this separation: domain reducer (pu
 ## 7. Glass UI Conventions
 - Reuse `GlassPanel` variants (`flat-pure`, `subtle`, `pure`, etc.). Prefer adding a variant rather than composing large custom class strings repeatedly.
 - Brand text uses `.glass-text-brand` (gradient text only; background layers intentionally removed). Do not reintroduce highlight overlays without explicit request.
+- Instead of using "glass-panel" class strings directly, prefer `GlassPanel` component with `variant` prop.
+- Popups / overlays (e.g. DatePicker) MUST wrap content in `GlassPanel variant="pure"` (rendered via portal if detached) instead of duplicating raw panel utility classes.
 
 ## 8. i18n / Language
 - Mixed Italian labels exist (e.g. form placeholders, calendar labels). If converting to full English, batch changes & keep README in sync. Do not partially translate randomly.

@@ -4,6 +4,7 @@ import { Confirm } from '@/components/Confirm';
 import { useTracker } from '@/state/TrackerContext';
 import { AnyExpense, RecurringExpenseTemplate, GeneratedRecurringExpenseInstance, isTemplate } from '@/domain/types';
 import { useMovementFilters } from '@/state/MovementFiltersContext';
+import { DatePicker } from './DatePicker';
 import { useI18n } from '@/state/I18nContext';
 import { useCurrencyFormatter } from '@/lib/format';
 import { formatCategory } from '@/lib/formatCategory';
@@ -183,8 +184,19 @@ export const MovementTable: React.FC = () => {
   }, [baseItems, from, to, q, dir, category, sortDesc, sortField]);
 
   const rows = useMemo<Row[]>(() => {
-    let balance = 0;
-    // For chronological balance calculation we need ascending order
+    // Compute initial running balance BEFORE current filter window start (to preserve cumulative correctness)
+    // We intentionally exclude projected future instances from baseline to avoid skewing historical balance.
+    const filterStart = from ? new Date(from + 'T00:00:00') : null;
+    let initialBalance = 0;
+    if (filterStart) {
+      for (const e of baseItems) {
+        if (e.id.startsWith('proj-')) continue;
+        const d = new Date(e.date);
+        if (d < filterStart) initialBalance += e.direction === 'in' ? e.amount : -e.amount;
+      }
+    }
+    let balance = initialBalance;
+    // For chronological calculation we sort ascending by date
     const chronological = [...filteredSorted].sort((a, b) => a.date.localeCompare(b.date));
     const computed: Row[] = chronological.map(e => {
       balance += e.direction === 'in' ? e.amount : -e.amount;
@@ -201,7 +213,7 @@ export const MovementTable: React.FC = () => {
       presented = [...computed].sort((a, b) => sortDesc ? b.balance - a.balance : a.balance - b.balance);
     }
     return presented;
-  }, [filteredSorted, sortDesc, sortField]);
+  }, [filteredSorted, sortDesc, sortField, baseItems, from]);
 
   const totals = useMemo(() => {
     let inc = 0, out = 0;
@@ -260,11 +272,11 @@ export const MovementTable: React.FC = () => {
       <div id="mov-filters" className={`flex flex-wrap gap-3 items-end text-[11px] md:text-[13px] ${filtersOpen ? '' : 'hidden sm:flex'} sm:flex`}>
         <div className="flex flex-col">
           <label htmlFor="mov-from" className="uppercase tracking-wide text-[10px] font-semibold">{t('mov.from')}</label>
-          <input id="mov-from" type="date" value={from} onChange={e => update({ from: e.target.value })} className="glass-input" />
+          <DatePicker id="mov-from" value={from} onChange={val => update({ from: val })} ariaLabel={t('mov.from')} />
         </div>
         <div className="flex flex-col">
           <label htmlFor="mov-to" className="uppercase tracking-wide text-[10px] font-semibold">{t('mov.to')}</label>
-          <input id="mov-to" type="date" value={to} onChange={e => update({ to: e.target.value })} className="glass-input" />
+          <DatePicker id="mov-to" value={to} onChange={val => update({ to: val })} ariaLabel={t('mov.to')} />
         </div>
         <div className="flex flex-col min-w-[140px]">
           <label htmlFor="mov-dir" className="uppercase tracking-wide text-[10px] font-semibold">{t('mov.direction')}</label>
@@ -340,12 +352,7 @@ export const MovementTable: React.FC = () => {
                   {isEditing ? (
                     <>
                       <td className="px-2 py-1 font-mono tabular-nums whitespace-nowrap">
-                        <input
-                          type="date"
-                          value={editValues!.date}
-                          onChange={e => setEditValues(v => v ? { ...v, date: e.target.value } : v)}
-                          className="glass-input glass-input--sm min-w-[120px]"
-                        />
+                        <DatePicker value={editValues!.date} onChange={val => setEditValues(v => v ? { ...v, date: val } : v)} className="min-w-[140px]" ariaLabel={t('mov.field.date')} />
                       </td>
                       <td className="px-2 py-1 max-w-[260px] md:max-w-[320px]">
                         <input
@@ -444,7 +451,7 @@ export const MovementTable: React.FC = () => {
             return (
               <div key={r.id} className="p-2 rounded-md glass-panel glass-panel--subtle space-y-2 outline outline-[var(--accent)]">
                 <div className="flex gap-2">
-                  <input type="date" value={editValues!.date} onChange={e => setEditValues(v => v ? { ...v, date: e.target.value } : v)} className="glass-input glass-input--sm flex-1" />
+                  <DatePicker value={editValues!.date} onChange={val => setEditValues(v => v ? { ...v, date: val } : v)} className="flex-1" ariaLabel={t('mov.field.date')} />
                   <select value={editValues!.direction} onChange={e => setEditValues(v => v ? { ...v, direction: e.target.value as 'in' | 'out' } : v)} className="glass-input glass-input--sm w-16">
                     <option value="out">{t('form.direction.out')}</option>
                     <option value="in">{t('form.direction.in')}</option>

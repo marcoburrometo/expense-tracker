@@ -6,6 +6,7 @@ import { mergeCategories } from '@/domain/categories';
 import { formatCategory } from '@/lib/formatCategory';
 import { useI18n } from '@/state/I18nContext';
 import { RadioGroup } from './forms/RadioGroup';
+import { DatePicker } from './DatePicker';
 
 export const ExpenseForm: React.FC = () => {
   const { addOneOff, addRecurringTemplate, expenses } = useTracker();
@@ -66,7 +67,6 @@ export const ExpenseForm: React.FC = () => {
   }
   const descClass = fieldClass('description');
   const amtClass = fieldClass('amount');
-  const dateClass = fieldClass('date');
 
   return (
     <GlassPanel as="form" onSubmit={onSubmit} variant="pure" className="space-y-3 p-4 md:p-5 max-w-md w-full">
@@ -92,7 +92,7 @@ export const ExpenseForm: React.FC = () => {
           {touched.amount && errors.amount && <p className="text-[10px] text-danger mt-0.5">{errors.amount}</p>}
         </div>
         <div>
-          <input type="date" value={date} onChange={e => setDate(e.target.value)} onBlur={() => markTouched('date')} className={dateClass} aria-invalid={!!errors.date && touched.date} />
+          <DatePicker value={date} onChange={val => { setDate(val); markTouched('date'); }} ariaLabel={t('form.date')} />
           {touched.date && errors.date && <p className="text-[10px] text-danger mt-0.5">{errors.date}</p>}
         </div>
         <div>
