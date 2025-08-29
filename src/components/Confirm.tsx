@@ -74,9 +74,9 @@ export const Confirm: React.FC<ConfirmProps> = ({
         onKeyDown={(e) => { if (e.key === 'Escape' || e.key === 'Enter') { onCancel(); } }}
         tabIndex={-1}
       />
-      <dialog open aria-labelledby="confirm-title" className="modal-panel glass-panel glass-panel--pure modal-enter w-full max-w-md m-0 flex flex-col p-5 space-y-4 bg-transparent max-h-[85vh]">
+      <dialog open aria-labelledby="confirm-title" className="modal-panel glass-panel glass-panel--pure glass-panel--flat modal-enter w-full max-w-md m-0 flex flex-col p-5 space-y-4 bg-transparent max-h-[85vh]">
         <div className="space-y-2 flex-1 flex flex-col min-h-0">
-          <h2 id="confirm-title" className="font-semibold text-lg">{title || t('confirm.title')}</h2>
+          <h2 id="confirm-title" className="font-semibold text-lg text-black dark:text-white">{title || t('confirm.title')}</h2>
           {description && <div className="text-xs text-muted leading-relaxed">{description}</div>}
           {details && (
             <div className="text-[11px] glass-panel glass-panel--subtle p-2 flex flex-col gap-0.5 max-h-[50vh] overflow-auto glass-scroll">

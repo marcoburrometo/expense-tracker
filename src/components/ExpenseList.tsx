@@ -5,6 +5,7 @@ import { useTracker } from '@/state/TrackerContext';
 import { mergeCategories } from '@/domain/categories';
 import { isTemplate, isRecurringInstance, AnyExpense } from '@/domain/types';
 import { useI18n } from '@/state/I18nContext';
+import GlassPanel from './GlassPanel';
 
 export const ExpenseList: React.FC = () => {
   const { expenses, deleteExpense, updateExpense } = useTracker();
@@ -59,7 +60,7 @@ export const ExpenseList: React.FC = () => {
 
   return (
     <>
-      <div className="glass-panel glass-panel--pure p-5 w-full space-y-3 fade-in">
+      <GlassPanel className='p-5 w-full space-y-3 fade-in' variant='pure'>
         <div className="flex items-center justify-between mb-2">
           <h2 className="font-semibold text-lg">{t('expenses.title')}</h2>
           <select value={filter} onChange={e => setFilter(e.target.value as 'all' | 'oneoff' | 'recurring')} className="text-xs md:text-sm glass-input">
@@ -125,7 +126,7 @@ export const ExpenseList: React.FC = () => {
             </div>
           </li>}
         </ul>
-      </div>
+      </GlassPanel>
       <Confirm
         open={!!deleteTarget}
         title={t('expenses.delete.title')}
