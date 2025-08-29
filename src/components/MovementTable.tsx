@@ -8,6 +8,8 @@ import { DatePicker } from './DatePicker';
 import { useI18n } from '@/state/I18nContext';
 import { useCurrencyFormatter } from '@/lib/format';
 import { formatCategory } from '@/lib/formatCategory';
+import { mergeCategories } from '@/domain/categories';
+import GlassPanel from './GlassPanel';
 
 interface Row { id: string; date: string; description: string; category: string; direction: 'in' | 'out'; amount: number; balance: number; projected?: boolean; }
 
@@ -155,7 +157,7 @@ export const MovementTable: React.FC = () => {
     }
   }
 
-  const categories = useMemo(() => Array.from(new Set(baseItems.map(i => i.category))).sort((a, b) => a.localeCompare(b)), [baseItems]);
+  const categories = useMemo(() => mergeCategories(baseItems.map(i => i.category)), [baseItems]);
 
   const filteredSorted = useMemo(() => {
     const start = from ? new Date(from) : null;
@@ -350,58 +352,50 @@ export const MovementTable: React.FC = () => {
               return (
                 <tr key={r.id} className={(r.projected ? 'opacity-80 italic row-projected ' : '') + (isEditing ? ' outline outline-[var(--accent)] bg-white/60 dark:bg-slate-700/50 ' : '')}>
                   {isEditing ? (
-                    <>
-                      <td className="px-2 py-1 font-mono tabular-nums whitespace-nowrap">
-                        <DatePicker value={editValues!.date} onChange={val => setEditValues(v => v ? { ...v, date: val } : v)} className="min-w-[140px]" ariaLabel={t('mov.field.date')} />
-                      </td>
-                      <td className="px-2 py-1 max-w-[260px] md:max-w-[320px]">
-                        <input
-                          value={editValues!.description}
-                          onChange={e => setEditValues(v => v ? { ...v, description: e.target.value } : v)}
-                          className="glass-input glass-input--sm w-full mb-1"
-                          placeholder={t('mov.col.description')}
-                        />
-                        <div className="flex gap-1 items-center">
-                          <input
-                            type="text"
-                            value={editValues!.category}
-                            onChange={e => setEditValues(v => v ? { ...v, category: e.target.value } : v)}
-                            className="glass-input glass-input--sm text-[10px] flex-1"
-                            placeholder={t('mov.col.category')}
-                          />
-                          <select
-                            value={editValues!.direction}
-                            onChange={e => setEditValues(v => v ? { ...v, direction: e.target.value as 'in' | 'out' } : v)}
-                            className="glass-input glass-input--sm text-[10px]"
-                          >
-                            <option value="out">−</option>
-                            <option value="in">+</option>
-                          </select>
+                    <td colSpan={6} className="p-2 align-top">
+                      <GlassPanel as="form" variant="subtle"
+                        onSubmit={e => { e.preventDefault(); commitEdit(); }}
+                        onKeyDown={e => { if (e.key === 'Escape') { e.preventDefault(); cancelEdit(); } }}
+                        className="space-y-4 text-[11px] md:text-[12px]"
+                      >
+                        {/* Row 1: Date + Description */}
+                        <div className="grid md:grid-cols-5 gap-3 items-start">
+                          <div className="flex flex-col gap-1 md:col-span-1 min-w-[120px]">
+                            <label className="uppercase tracking-wide text-[9px] font-semibold opacity-70" htmlFor="edit-date">{t('mov.field.date')}</label>
+                            <DatePicker id="edit-date" value={editValues!.date} onChange={val => setEditValues(v => v ? { ...v, date: val } : v)} ariaLabel={t('mov.field.date')} />
+                          </div>
+                          <div className="flex flex-col gap-1 md:col-span-4 min-w-0">
+                            <label className="uppercase tracking-wide text-[9px] font-semibold opacity-70" htmlFor="edit-desc">{t('mov.col.description')}</label>
+                            <input id="edit-desc" autoFocus value={editValues!.description} onChange={e => setEditValues(v => v ? { ...v, description: e.target.value } : v)} className="glass-input w-full" placeholder={t('mov.col.description')} />
+                          </div>
                         </div>
-                      </td>
-                      <td className="px-2 py-1 hidden md:table-cell">
-                        <input
-                          type="text"
-                          value={editValues!.category}
-                          onChange={e => setEditValues(v => v ? { ...v, category: e.target.value } : v)}
-                          className="glass-input glass-input--sm w-full"
-                        />
-                      </td>
-                      <td className="px-2 py-1 text-right font-mono tabular-nums">
-                        <input
-                          type="number"
-                          step="0.01"
-                          value={editValues!.amount}
-                          onChange={e => setEditValues(v => v ? { ...v, amount: e.target.value } : v)}
-                          className="glass-input glass-input--sm w-[90px] text-right font-mono"
-                        />
-                      </td>
-                      <td className="px-2 py-1 text-right font-mono tabular-nums hidden sm:table-cell">{format(r.balance)}</td>
-                      <td className="px-2 py-1 text-right whitespace-nowrap flex gap-1 justify-end">
-                        <button onClick={commitEdit} className="glass-button glass-button--sm glass-button--success" aria-label={t('mov.actions.save')}>✓</button>
-                        <button onClick={cancelEdit} className="glass-button glass-button--sm glass-button--neutral" aria-label={t('mov.actions.cancel')}>↺</button>
-                      </td>
-                    </>
+                        {/* Row 2: Category + Direction + Amount */}
+                        <div className="grid md:grid-cols-5 gap-3 items-start">
+                          <div className="flex flex-col gap-1 md:col-span-3">
+                            <label className="uppercase tracking-wide text-[9px] font-semibold opacity-70" htmlFor="edit-cat">{t('mov.col.category')}</label>
+                            <select id="edit-cat" value={editValues!.category} onChange={e => setEditValues(v => v ? { ...v, category: e.target.value } : v)} className="glass-input w-full">
+                              {categories.map(c => <option key={c} value={c}>{formatCategory(c, t)}</option>)}
+                            </select>
+                          </div>
+                          <div className="flex flex-col gap-1 md:col-span-1">
+                            <label className="uppercase tracking-wide text-[9px] font-semibold opacity-70" htmlFor="edit-dir">{t('mov.direction')}</label>
+                            <select id="edit-dir" value={editValues!.direction} onChange={e => setEditValues(v => v ? { ...v, direction: e.target.value as 'in' | 'out' } : v)} className="glass-input w-full">
+                              <option value="out">{t('form.direction.out')}</option>
+                              <option value="in">{t('form.direction.in')}</option>
+                            </select>
+                          </div>
+                          <div className="flex flex-col gap-1 md:col-span-1">
+                            <label className="uppercase tracking-wide text-[9px] font-semibold opacity-70" htmlFor="edit-amount">{t('mov.col.amount')}</label>
+                            <input id="edit-amount" type="number" step="0.01" value={editValues!.amount} onChange={e => setEditValues(v => v ? { ...v, amount: e.target.value } : v)} className="glass-input w-full text-right font-mono" />
+                          </div>
+                        </div>
+                        {/* Row 3: Actions */}
+                        <div className="flex gap-2 justify-end">
+                          <button type="button" onClick={cancelEdit} className="glass-button glass-button--sm glass-button--neutral whitespace-nowrap">{t('generic.cancel')}</button>
+                          <button type="submit" className="glass-button glass-button--sm glass-button--success whitespace-nowrap">{t('generic.save')}</button>
+                        </div>
+                      </GlassPanel>
+                    </td>
                   ) : (
                     <>
                       <td className="px-2 py-1 font-mono tabular-nums whitespace-nowrap">{r.date}</td>
@@ -449,28 +443,43 @@ export const MovementTable: React.FC = () => {
           const isEditing = editingId === r.id && editValues;
           if (isEditing) {
             return (
-              <div key={r.id} className="p-2 rounded-md glass-panel glass-panel--subtle space-y-2 outline outline-[var(--accent)]">
-                <div className="flex gap-2">
-                  <DatePicker value={editValues!.date} onChange={val => setEditValues(v => v ? { ...v, date: val } : v)} className="flex-1" ariaLabel={t('mov.field.date')} />
-                  <select value={editValues!.direction} onChange={e => setEditValues(v => v ? { ...v, direction: e.target.value as 'in' | 'out' } : v)} className="glass-input glass-input--sm w-16">
-                    <option value="out">{t('form.direction.out')}</option>
-                    <option value="in">{t('form.direction.in')}</option>
-                  </select>
-                </div>
-                <input value={editValues!.description} onChange={e => setEditValues(v => v ? { ...v, description: e.target.value } : v)} className="glass-input glass-input--sm w-full" placeholder={t('mov.col.description')} />
-                <div className="flex gap-2">
-                  <input type="text" value={editValues!.category} onChange={e => setEditValues(v => v ? { ...v, category: e.target.value } : v)} className="glass-input glass-input--sm flex-1" placeholder={t('mov.col.category')} />
-                  <input type="number" step="0.01" value={editValues!.amount} onChange={e => setEditValues(v => v ? { ...v, amount: e.target.value } : v)} className="glass-input glass-input--sm w-28 text-right font-mono" />
-                </div>
-                <div className="flex justify-between items-center text-[11px] pt-1">
-                  <span className={`font-mono ${amountSigned >= 0 ? 'text-success' : 'text-danger'}`}>{format(amountSigned)}</span>
-                  <span className={`font-mono ${r.balance >= 0 ? 'text-success' : 'text-danger'}`}>{format(r.balance)}</span>
-                </div>
-                <div className="flex justify-end gap-2 pt-1">
-                  <button onClick={commitEdit} className="glass-button glass-button--sm glass-button--success" aria-label={t('mov.actions.save')}>✓</button>
-                  <button onClick={cancelEdit} className="glass-button glass-button--sm glass-button--neutral" aria-label={t('mov.actions.cancel')}>↺</button>
-                </div>
-              </div>
+              <GlassPanel key={r.id} variant="pure" className="p-3 space-y-4 outline outline-[var(--accent)]">
+                <form
+                  onSubmit={e => { e.preventDefault(); commitEdit(); }}
+                  onKeyDown={e => { if (e.key === 'Escape') { e.preventDefault(); cancelEdit(); } }}
+                  className="space-y-3"
+                >
+                  {/* Row1: Date + Description */}
+                  <div className="grid grid-cols-2 gap-2 items-start">
+                    <DatePicker value={editValues!.date} onChange={val => setEditValues(v => v ? { ...v, date: val } : v)} ariaLabel={t('mov.field.date')} className="col-span-1" />
+                    <input autoFocus value={editValues!.description} onChange={e => setEditValues(v => v ? { ...v, description: e.target.value } : v)} className="glass-input col-span-1" placeholder={t('mov.col.description')} />
+                  </div>
+                  {/* Row2: Category + Direction + Amount */}
+                  <div className="grid grid-cols-3 gap-2">
+                    <select value={editValues!.category} onChange={e => setEditValues(v => v ? { ...v, category: e.target.value } : v)} className="glass-input col-span-2">
+                      {categories.map(c => <option key={c} value={c}>{formatCategory(c, t)}</option>)}
+                    </select>
+                    <div className="flex gap-2 col-span-1">
+                      <select value={editValues!.direction} onChange={e => setEditValues(v => v ? { ...v, direction: e.target.value as 'in' | 'out' } : v)} className="glass-input w-20">
+                        <option value="out">{t('form.direction.out')}</option>
+                        <option value="in">{t('form.direction.in')}</option>
+                      </select>
+                      <input type="number" step="0.01" value={editValues!.amount} onChange={e => setEditValues(v => v ? { ...v, amount: e.target.value } : v)} className="glass-input flex-1 text-right font-mono" placeholder={t('mov.col.amount')} />
+                    </div>
+                  </div>
+                  {/* Row3: Summary + Actions */}
+                  <div className="flex items-center justify-between text-[11px]">
+                    <div className="flex flex-col gap-1">
+                      <span className={`font-mono ${amountSigned >= 0 ? 'text-success' : 'text-danger'}`}>{format(amountSigned)}</span>
+                      <span className={`font-mono ${r.balance >= 0 ? 'text-success' : 'text-danger'}`}>{format(r.balance)}</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <button type="button" onClick={cancelEdit} className="glass-button glass-button--sm glass-button--neutral">{t('generic.cancel')}</button>
+                      <button type="submit" className="glass-button glass-button--sm glass-button--success">{t('generic.save')}</button>
+                    </div>
+                  </div>
+                </form>
+              </GlassPanel>
             );
           }
           return (
